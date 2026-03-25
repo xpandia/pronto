@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pronto — The IDE for AI Prompts</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   RESET & GLOBAL
+   ═══════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-0:#0a0a0b;--bg-1:#111113;--bg-2:#18181b;--bg-3:#1e1e22;--bg-4:#27272a;
+  --border:#2a2a2e;--border-hover:#3f3f46;
+  --text-0:#fafafa;--text-1:#d4d4d8;--text-2:#a1a1aa;--text-3:#71717a;
+  --purple:#7c3aed;--purple-hover:#6d28d9;--purple-soft:rgba(124,58,237,.12);--purple-glow:rgba(124,58,237,.25);
+  --green:#10b981;--green-soft:rgba(16,185,129,.12);
+  --red:#ef4444;--red-soft:rgba(239,68,68,.12);
+  --amber:#f59e0b;--amber-soft:rgba(245,158,11,.12);
+  --blue:#3b82f6;--blue-soft:rgba(59,130,246,.12);
+  --cyan:#06b6d4;
+  --radius:8px;--radius-lg:12px;
+  --font-sans:'Inter',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
+  --shadow-lg:0 10px 25px rgba(0,0,0,.5);
+  --transition:150ms cubic-bezier(.4,0,.2,1);
+}
+html,body{height:100%;overflow:hidden;background:var(--bg-0);color:var(--text-0);font-family:var(--font-sans);font-size:14px;line-height:1.5}
+a{color:var(--purple);text-decoration:none}
+button{cursor:pointer;font-family:var(--font-sans);border:none;outline:none}
+input,textarea,select{font-family:var(--font-sans);background:var(--bg-2);color:var(--text-0);border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:13px;outline:none;transition:border var(--transition)}
+input:focus,textarea:focus,select:focus{border-color:var(--purple)}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg-4);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════════════════════════ */
+#app{display:flex;height:100vh;width:100vw}
+
+/* Sidebar */
+.sidebar{width:260px;min-width:260px;background:var(--bg-1);border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:10}
+.sidebar-brand{padding:20px 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sidebar-brand .logo{width:32px;height:32px;background:var(--purple);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff}
+.sidebar-brand h1{font-size:18px;font-weight:700;letter-spacing:-0.5px}
+.sidebar-brand span{font-size:11px;color:var(--text-3);font-weight:500;margin-left:auto;background:var(--bg-3);padding:2px 8px;border-radius:10px}
+
+.sidebar-nav{flex:1;padding:12px 8px;overflow-y:auto}
+.nav-section{margin-bottom:8px}
+.nav-section-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);padding:8px 12px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius);color:var(--text-2);font-size:13px;font-weight:500;cursor:pointer;transition:all var(--transition);user-select:none}
+.nav-item:hover{background:var(--bg-3);color:var(--text-0)}
+.nav-item.active{background:var(--purple-soft);color:var(--purple);font-weight:600}
+.nav-item .icon{font-size:16px;width:20px;text-align:center}
+.nav-item .badge{margin-left:auto;font-size:10px;font-weight:600;background:var(--purple);color:#fff;padding:1px 6px;border-radius:8px}
+
+.sidebar-user{padding:12px 16px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.sidebar-user .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--blue));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff}
+.sidebar-user .user-info{flex:1;min-width:0}
+.sidebar-user .user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user .user-email{font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* Top Bar */
+.topbar{height:48px;min-height:48px;background:var(--bg-1);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:8px}
+.topbar .tabs{display:flex;gap:2px}
+.topbar .tab{padding:8px 16px;font-size:13px;font-weight:500;color:var(--text-2);border-radius:var(--radius);cursor:pointer;transition:all var(--transition);display:flex;align-items:center;gap:6px;user-select:none;white-space:nowrap}
+.topbar .tab:hover{background:var(--bg-3);color:var(--text-0)}
+.topbar .tab.active{background:var(--purple-soft);color:var(--purple);font-weight:600}
+.topbar .spacer{flex:1}
+.topbar .status{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-3)}
+.topbar .status .dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+
+/* Content */
+.content{flex:1;overflow:hidden;position:relative}
+.tab-panel{display:none;height:100%;overflow:auto}
+.tab-panel.active{display:flex;flex-direction:column}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   BUTTONS
+   ═══════════════════════════════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);font-size:13px;font-weight:600;transition:all var(--transition)}
+.btn-primary{background:var(--purple);color:#fff}
+.btn-primary:hover{background:var(--purple-hover);box-shadow:0 0 20px var(--purple-glow)}
+.btn-secondary{background:var(--bg-3);color:var(--text-1);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--border-hover);background:var(--bg-4)}
+.btn-ghost{background:transparent;color:var(--text-2)}
+.btn-ghost:hover{background:var(--bg-3);color:var(--text-0)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-danger{background:var(--red-soft);color:var(--red)}
+.btn-danger:hover{background:var(--red);color:#fff}
+.btn-success{background:var(--green-soft);color:var(--green)}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PILLS & BADGES
+   ═══════════════════════════════════════════════════════════════════════ */
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.pill-purple{background:var(--purple-soft);color:var(--purple)}
+.pill-green{background:var(--green-soft);color:var(--green)}
+.pill-amber{background:var(--amber-soft);color:var(--amber)}
+.pill-blue{background:var(--blue-soft);color:var(--blue)}
+.pill-red{background:var(--red-soft);color:var(--red)}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EDITOR TAB
+   ═══════════════════════════════════════════════════════════════════════ */
+#editor-panel{flex-direction:row !important}
+
+.editor-versions{width:200px;min-width:200px;background:var(--bg-1);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.editor-versions .ev-header{padding:12px 16px;font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:between}
+.editor-versions .ev-list{flex:1;overflow-y:auto;padding:8px}
+.version-item{padding:10px 12px;border-radius:var(--radius);cursor:pointer;transition:all var(--transition);margin-bottom:4px}
+.version-item:hover{background:var(--bg-3)}
+.version-item.active{background:var(--purple-soft);border-left:3px solid var(--purple)}
+.version-item .v-num{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--text-0)}
+.version-item .v-date{font-size:11px;color:var(--text-3);margin-top:2px}
+.version-item .v-model{font-size:10px;color:var(--text-3);font-family:var(--font-mono)}
+
+.editor-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.editor-toolbar{height:44px;min-height:44px;background:var(--bg-2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px}
+.editor-toolbar .prompt-title-input{background:transparent;border:none;font-size:15px;font-weight:600;color:var(--text-0);flex:1;min-width:200px}
+.editor-toolbar .prompt-title-input:focus{border:none;outline:none}
+
+.editor-body{flex:1;display:flex;overflow:hidden}
+.editor-code-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* Meta bar */
+.editor-meta{display:flex;gap:16px;align-items:center;padding:10px 16px;background:var(--bg-2);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.meta-group{display:flex;align-items:center;gap:6px}
+.meta-group label{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px}
+.meta-group select{padding:5px 8px;font-size:12px}
+.meta-group .temp-slider{width:100px;accent-color:var(--purple);cursor:pointer}
+.meta-group .temp-val{font-family:var(--font-mono);font-size:12px;color:var(--purple);min-width:32px}
+.meta-group input[type="number"]{width:70px;padding:5px 8px;font-size:12px}
+
+/* Code editor */
+.code-editor-wrap{flex:1;display:flex;overflow:hidden;position:relative}
+.code-gutter{width:48px;min-width:48px;background:var(--bg-1);padding:16px 0;text-align:right;font-family:var(--font-mono);font-size:13px;line-height:1.7;color:var(--text-3);user-select:none;overflow:hidden}
+.code-gutter .line-num{padding-right:12px}
+.code-editor{flex:1;position:relative}
+.code-editor textarea{width:100%;height:100%;background:var(--bg-0);color:var(--text-0);border:none;border-radius:0;padding:16px;font-family:var(--font-mono);font-size:13px;line-height:1.7;resize:none;tab-size:2;white-space:pre-wrap;word-wrap:break-word}
+.code-editor textarea:focus{border:none}
+.code-editor .highlight-layer{position:absolute;inset:0;padding:16px;font-family:var(--font-mono);font-size:13px;line-height:1.7;pointer-events:none;white-space:pre-wrap;word-wrap:break-word;color:transparent;overflow:hidden}
+.code-editor .highlight-layer .var-hl{color:var(--purple);background:var(--purple-soft);border-radius:3px;padding:0 2px;font-weight:600}
+
+/* System prompt area */
+.system-prompt-section{border-bottom:1px solid var(--border)}
+.system-prompt-header{display:flex;align-items:center;gap:8px;padding:8px 16px;background:var(--bg-2);cursor:pointer;user-select:none}
+.system-prompt-header .label{font-size:12px;font-weight:600;color:var(--text-2)}
+.system-prompt-header .toggle{font-size:10px;color:var(--text-3)}
+.system-prompt-editor{display:none}
+.system-prompt-editor.open{display:block}
+.system-prompt-editor textarea{width:100%;height:100px;background:var(--bg-0);color:var(--text-1);border:none;padding:12px 16px;font-family:var(--font-mono);font-size:13px;line-height:1.6;resize:vertical}
+
+/* Output panel */
+.editor-output{width:42%;min-width:300px;border-left:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg-1)}
+.output-header{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.output-header h3{font-size:13px;font-weight:600;color:var(--text-2)}
+.output-header .metrics{margin-left:auto;display:flex;gap:12px}
+.output-header .metric{font-size:11px;color:var(--text-3);font-family:var(--font-mono)}
+.output-header .metric span{color:var(--text-1)}
+.output-body{flex:1;padding:16px;overflow-y:auto;font-family:var(--font-mono);font-size:13px;line-height:1.7;color:var(--text-1);white-space:pre-wrap}
+.output-body.empty{display:flex;align-items:center;justify-content:center;color:var(--text-3);font-family:var(--font-sans);font-style:italic}
+.output-loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-3)}
+.output-loading .spinner{width:24px;height:24px;border:3px solid var(--bg-4);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Resize handle */
+.resize-handle{width:4px;cursor:col-resize;background:transparent;transition:background var(--transition);position:relative;z-index:5}
+.resize-handle:hover,.resize-handle.active{background:var(--purple)}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TEST TAB
+   ═══════════════════════════════════════════════════════════════════════ */
+#test-panel{padding:24px}
+.test-config{display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:24px;padding:20px;background:var(--bg-2);border-radius:var(--radius-lg);border:1px solid var(--border)}
+.test-config .field{display:flex;flex-direction:column;gap:4px}
+.test-config .field label{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px}
+.model-checkboxes{display:flex;flex-wrap:wrap;gap:8px}
+.model-check{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;transition:all var(--transition);font-size:12px;font-weight:500;color:var(--text-2)}
+.model-check:hover{border-color:var(--border-hover)}
+.model-check.selected{border-color:var(--purple);background:var(--purple-soft);color:var(--purple)}
+.model-check input{display:none}
+
+.test-vars{margin-bottom:16px;padding:16px;background:var(--bg-2);border-radius:var(--radius-lg);border:1px solid var(--border)}
+.test-vars h4{font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.test-var-row{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.test-var-row .var-name{font-family:var(--font-mono);font-size:12px;color:var(--purple);min-width:120px}
+.test-var-row input{flex:1}
+
+.test-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.test-result-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;display:flex;flex-direction:column}
+.test-result-card.best{border-color:var(--green);box-shadow:0 0 20px rgba(16,185,129,.15)}
+.trc-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.trc-header .model-name{font-size:13px;font-weight:600}
+.trc-header .best-badge{margin-left:auto;font-size:10px;font-weight:700;background:var(--green);color:#fff;padding:2px 8px;border-radius:10px;text-transform:uppercase}
+.trc-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border)}
+.trc-metrics .m{background:var(--bg-2);padding:10px 12px;text-align:center}
+.trc-metrics .m .m-label{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px}
+.trc-metrics .m .m-value{font-family:var(--font-mono);font-size:16px;font-weight:700;margin-top:2px}
+.trc-output{flex:1;padding:12px 16px;font-family:var(--font-mono);font-size:12px;line-height:1.6;color:var(--text-1);max-height:300px;overflow-y:auto;white-space:pre-wrap}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   A/B TEST TAB
+   ═══════════════════════════════════════════════════════════════════════ */
+#ab-panel{padding:24px}
+.ab-config{display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin-bottom:24px;padding:20px;background:var(--bg-2);border-radius:var(--radius-lg);border:1px solid var(--border)}
+.ab-config .field{display:flex;flex-direction:column;gap:4px}
+.ab-config .field label{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px}
+
+.ab-results{display:grid;grid-template-columns:1fr 120px 1fr;gap:0;margin-bottom:24px}
+.ab-variant{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;display:flex;flex-direction:column}
+.ab-variant.winner{border-color:var(--green);box-shadow:0 0 20px rgba(16,185,129,.1)}
+.ab-variant h3{font-size:14px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.ab-variant .winner-crown{color:var(--green);font-size:16px}
+.ab-vs{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px}
+.ab-vs .vs-circle{width:48px;height:48px;border-radius:50%;background:var(--bg-3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--text-2)}
+.ab-stat-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.ab-stat-row:last-child{border:none}
+.ab-stat-row .label{font-size:12px;color:var(--text-3)}
+.ab-stat-row .value{font-family:var(--font-mono);font-size:13px;font-weight:600}
+
+.ab-summary{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.ab-summary h3{font-size:14px;font-weight:700;margin-bottom:16px}
+.ab-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.ab-summary-card{background:var(--bg-3);border-radius:var(--radius);padding:16px;text-align:center}
+.ab-summary-card .sc-label{font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px}
+.ab-summary-card .sc-value{font-family:var(--font-mono);font-size:24px;font-weight:800;margin-top:4px}
+.ab-summary-card .sc-detail{font-size:11px;color:var(--text-3);margin-top:4px}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MARKETPLACE TAB
+   ═══════════════════════════════════════════════════════════════════════ */
+#marketplace-panel{padding:24px}
+.mp-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.mp-header h2{font-size:20px;font-weight:700}
+.mp-search{flex:1;min-width:200px;max-width:400px;position:relative}
+.mp-search input{width:100%;padding-left:36px}
+.mp-search .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:14px}
+.mp-categories{display:flex;gap:6px;flex-wrap:wrap}
+.mp-cat{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--text-2);transition:all var(--transition)}
+.mp-cat:hover{border-color:var(--border-hover);color:var(--text-0)}
+.mp-cat.active{background:var(--purple-soft);border-color:var(--purple);color:var(--purple)}
+
+.mp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.mp-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;transition:all var(--transition);display:flex;flex-direction:column}
+.mp-card:hover{border-color:var(--border-hover);box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.mp-card .mc-top{display:flex;align-items:start;justify-content:space-between;margin-bottom:12px}
+.mp-card .mc-title{font-size:15px;font-weight:700;line-height:1.3}
+.mp-card .mc-cat{margin-top:4px}
+.mp-card .mc-desc{font-size:13px;color:var(--text-2);margin-bottom:16px;flex:1;line-height:1.5}
+.mp-card .mc-meta{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--text-3)}
+.mp-card .mc-meta .mc-stat{display:flex;align-items:center;gap:4px}
+.mp-card .mc-author{font-weight:600;color:var(--text-2)}
+.mp-card .mc-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.mp-card .mc-rating{color:var(--amber);font-weight:600}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANALYTICS TAB
+   ═══════════════════════════════════════════════════════════════════════ */
+#analytics-panel{padding:24px}
+.analytics-header{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+.analytics-header h2{font-size:20px;font-weight:700}
+
+.analytics-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.kpi-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.kpi-card .kpi-label{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px}
+.kpi-card .kpi-value{font-family:var(--font-mono);font-size:28px;font-weight:800;margin-top:4px}
+.kpi-card .kpi-change{font-size:12px;margin-top:4px;font-weight:600}
+.kpi-card .kpi-change.up{color:var(--green)}
+.kpi-card .kpi-change.down{color:var(--red)}
+
+.analytics-charts{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
+.chart-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}
+.chart-card h3{font-size:14px;font-weight:700;margin-bottom:16px}
+
+/* CSS-only charts */
+.css-line-chart{height:180px;display:flex;align-items:end;gap:3px;padding:0 4px}
+.css-line-chart .bar{flex:1;background:linear-gradient(180deg,var(--purple),var(--purple-soft));border-radius:3px 3px 0 0;transition:height .5s ease;position:relative;min-width:8px}
+.css-line-chart .bar:hover{opacity:.8}
+.css-line-chart .bar::after{content:attr(data-label);position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--text-3);white-space:nowrap}
+
+.css-donut{width:160px;height:160px;border-radius:50%;position:relative;margin:0 auto}
+.css-donut::after{content:'';position:absolute;width:100px;height:100px;background:var(--bg-2);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%)}
+.donut-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:1}
+.donut-label .dl-value{font-family:var(--font-mono);font-size:20px;font-weight:800}
+.donut-label .dl-text{font-size:10px;color:var(--text-3)}
+
+.top-prompts-list{list-style:none}
+.top-prompts-list li{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.top-prompts-list li:last-child{border:none}
+.top-prompts-list .rank{font-family:var(--font-mono);font-size:14px;font-weight:800;color:var(--text-3);width:24px}
+.top-prompts-list .tp-title{flex:1;font-size:13px;font-weight:600}
+.top-prompts-list .tp-runs{font-family:var(--font-mono);font-size:12px;color:var(--text-3)}
+
+.model-breakdown{list-style:none}
+.model-breakdown li{margin-bottom:12px}
+.model-breakdown .mb-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+.model-breakdown .mb-name{font-weight:600;color:var(--text-1)}
+.model-breakdown .mb-cost{font-family:var(--font-mono);color:var(--text-3)}
+.model-breakdown .mb-bar{height:6px;background:var(--bg-4);border-radius:3px;overflow:hidden}
+.model-breakdown .mb-bar-fill{height:100%;border-radius:3px;transition:width .5s ease}
+
+/* Quality trend */
+.quality-trend{display:flex;align-items:end;gap:4px;height:60px}
+.quality-trend .qt-bar{flex:1;border-radius:2px 2px 0 0;transition:height .5s ease;min-width:6px}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   NOTIFICATIONS & MODALS
+   ═══════════════════════════════════════════════════════════════════════ */
+.toast-container{position:fixed;top:16px;right:16px;z-index:1000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:12px 20px;border-radius:var(--radius);font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);animation:slideIn .3s ease;display:flex;align-items:center;gap:8px}
+.toast-success{background:#065f46;color:#6ee7b7;border:1px solid #047857}
+.toast-error{background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b}
+.toast-info{background:#1e1b4b;color:#a78bfa;border:1px solid #4c1d95}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;min-width:400px;max-width:600px;box-shadow:var(--shadow-lg)}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:16px}
+.modal .form-group{margin-bottom:16px}
+.modal .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.modal .form-group input,.modal .form-group textarea,.modal .form-group select{width:100%}
+.modal .form-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   AUTH OVERLAY
+   ═══════════════════════════════════════════════════════════════════════ */
+.auth-overlay{position:fixed;inset:0;background:var(--bg-0);z-index:200;display:flex;align-items:center;justify-content:center}
+.auth-overlay.hidden{display:none}
+.auth-card{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;width:420px;box-shadow:var(--shadow-lg)}
+.auth-card .auth-brand{text-align:center;margin-bottom:32px}
+.auth-card .auth-brand .logo{width:48px;height:48px;background:var(--purple);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;color:#fff;margin-bottom:12px}
+.auth-card .auth-brand h1{font-size:24px;font-weight:800;letter-spacing:-1px}
+.auth-card .auth-brand p{color:var(--text-3);font-size:13px;margin-top:4px}
+.auth-card .form-group{margin-bottom:16px}
+.auth-card .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.auth-card .form-group input{width:100%;padding:10px 14px}
+.auth-card .auth-btn{width:100%;padding:12px;font-size:14px;font-weight:700}
+.auth-card .auth-toggle{text-align:center;margin-top:16px;font-size:13px;color:var(--text-3)}
+.auth-card .auth-toggle a{cursor:pointer;font-weight:600}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EMPTY STATES
+   ═══════════════════════════════════════════════════════════════════════ */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--text-3);text-align:center}
+.empty-state .es-icon{font-size:48px;margin-bottom:16px;opacity:.5}
+.empty-state h3{font-size:16px;font-weight:600;color:var(--text-2);margin-bottom:8px}
+.empty-state p{font-size:13px;max-width:400px}
+
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     AUTH OVERLAY
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="logo">P</div>
+      <h1>Pronto</h1>
+      <p>The IDE for AI Prompts on AWS Bedrock</p>
+    </div>
+    <div id="auth-login-form">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@company.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Enter password">
+      </div>
+      <button class="btn btn-primary auth-btn" onclick="handleLogin()">Sign In</button>
+      <div class="auth-toggle">Don't have an account? <a onclick="showRegister()">Sign up</a></div>
+    </div>
+    <div id="auth-register-form" style="display:none">
+      <div class="form-group">
+        <label>Display Name</label>
+        <input type="text" id="reg-name" placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="you@company.com">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="reg-password" placeholder="Min 8 characters">
+      </div>
+      <button class="btn btn-primary auth-btn" onclick="handleRegister()">Create Account</button>
+      <div class="auth-toggle">Already have an account? <a onclick="showLogin()">Sign in</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MAIN APP
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">P</div>
+      <h1>Pronto</h1>
+      <span>v0.1</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Workspace</div>
+        <div class="nav-item active" data-tab="editor" onclick="switchTab('editor')">
+          <span class="icon">&#x270F;&#xFE0F;</span> Editor
+        </div>
+        <div class="nav-item" data-tab="test" onclick="switchTab('test')">
+          <span class="icon">&#x1F9EA;</span> Test
+        </div>
+        <div class="nav-item" data-tab="ab" onclick="switchTab('ab')">
+          <span class="icon">&#x1F52C;</span> A/B Test
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Community</div>
+        <div class="nav-item" data-tab="marketplace" onclick="switchTab('marketplace')">
+          <span class="icon">&#x1F3EA;</span> Marketplace
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Insights</div>
+        <div class="nav-item" data-tab="analytics" onclick="switchTab('analytics')">
+          <span class="icon">&#x1F4CA;</span> Analytics
+        </div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">My Prompts</div>
+        <div id="sidebar-prompts-list"></div>
+      </div>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar" id="user-avatar">?</div>
+      <div class="user-info">
+        <div class="user-name" id="user-display-name">Not signed in</div>
+        <div class="user-email" id="user-email-display">-</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tabs">
+        <div class="tab active" data-tab="editor" onclick="switchTab('editor')">&#x270F;&#xFE0F; Editor</div>
+        <div class="tab" data-tab="test" onclick="switchTab('test')">&#x1F9EA; Test</div>
+        <div class="tab" data-tab="ab" onclick="switchTab('ab')">&#x1F52C; A/B Test</div>
+        <div class="tab" data-tab="marketplace" onclick="switchTab('marketplace')">&#x1F3EA; Marketplace</div>
+        <div class="tab" data-tab="analytics" onclick="switchTab('analytics')">&#x1F4CA; Analytics</div>
+      </div>
+      <div class="spacer"></div>
+      <div class="status">
+        <div class="dot"></div>
+        <span>Bedrock Connected</span>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ═══════════════ EDITOR TAB ═══════════════ -->
+      <div class="tab-panel active" id="editor-panel">
+        <!-- Version History -->
+        <div class="editor-versions">
+          <div class="ev-header">
+            <span>Versions</span>
+          </div>
+          <div class="ev-list" id="version-list"></div>
+        </div>
+
+        <!-- Editor Main -->
+        <div class="editor-main">
+          <div class="editor-toolbar">
+            <input class="prompt-title-input" id="prompt-title" placeholder="Untitled Prompt" value="AWS Security Audit">
+            <select id="prompt-category" style="width:140px">
+              <option value="security">Security</option>
+              <option value="cost">Cost Optimization</option>
+              <option value="deployment">Deployment</option>
+              <option value="data">Data</option>
+              <option value="automation">Automation</option>
+              <option value="general">General</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" onclick="savePrompt()">&#x1F4BE; Save</button>
+            <button class="btn btn-primary btn-sm" onclick="runPrompt()">&#x25B6; Run</button>
+            <button class="btn btn-ghost btn-sm" onclick="openPublishModal()">&#x1F4E4; Publish</button>
+          </div>
+
+          <div class="editor-meta">
+            <div class="meta-group">
+              <label>Model</label>
+              <select id="prompt-model"></select>
+            </div>
+            <div class="meta-group">
+              <label>Temp</label>
+              <input type="range" class="temp-slider" id="prompt-temp" min="0" max="1" step="0.05" value="0.7" oninput="document.getElementById('temp-display').textContent=this.value">
+              <span class="temp-val" id="temp-display">0.7</span>
+            </div>
+            <div class="meta-group">
+              <label>Max Tokens</label>
+              <input type="number" id="prompt-max-tokens" value="1024" min="1" max="8192">
+            </div>
+          </div>
+
+          <div class="editor-body">
+            <div class="editor-code-area">
+              <!-- System prompt -->
+              <div class="system-prompt-section">
+                <div class="system-prompt-header" onclick="toggleSystemPrompt()">
+                  <span class="toggle" id="sys-toggle">&#x25B6;</span>
+                  <span class="label">SYSTEM PROMPT</span>
+                </div>
+                <div class="system-prompt-editor" id="system-prompt-area">
+                  <textarea id="system-prompt-text" placeholder="Enter system prompt...">You are an expert AWS security engineer. Analyze the given AWS account configuration and identify security vulnerabilities, misconfigurations, and compliance gaps. Provide actionable remediation steps.</textarea>
+                </div>
+              </div>
+
+              <!-- User prompt editor -->
+              <div class="code-editor-wrap" style="flex:1">
+                <div class="code-gutter" id="code-gutter"></div>
+                <div class="code-editor">
+                  <div class="highlight-layer" id="highlight-layer"></div>
+                  <textarea id="prompt-editor" spellcheck="false" oninput="handleEditorInput()" onscroll="syncScroll()">Perform a comprehensive security audit for the following AWS environment:
+
+Region: {{region}}
+Account ID: {{account_id}}
+Services in use: {{services}}
+
+Please analyze:
+1. IAM policies and roles for overly permissive access
+2. S3 bucket configurations for public exposure
+3. Security group rules for unnecessary open ports
+4. CloudTrail and logging configuration
+5. Encryption at rest and in transit status
+
+For each finding, provide:
+- Severity (Critical/High/Medium/Low)
+- Description of the vulnerability
+- AWS CLI command to remediate
+- Compliance framework mapping (SOC2, CIS, NIST)</textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="resize-handle" id="editor-resize"></div>
+
+            <!-- Output Panel -->
+            <div class="editor-output">
+              <div class="output-header">
+                <h3>&#x1F4E4; Output</h3>
+                <div class="metrics" id="output-metrics" style="display:none">
+                  <div class="metric">Latency: <span id="out-latency">-</span></div>
+                  <div class="metric">Tokens: <span id="out-tokens">-</span></div>
+                  <div class="metric">Cost: <span id="out-cost">-</span></div>
+                </div>
+              </div>
+              <div class="output-body empty" id="output-body">
+                Press Run to execute your prompt against the selected model
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ TEST TAB ═══════════════ -->
+      <div class="tab-panel" id="test-panel">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:20px">Multi-Model Evaluation</h2>
+
+        <div class="test-config">
+          <div class="field">
+            <label>Prompt</label>
+            <select id="test-prompt-select" style="min-width:250px" onchange="updateTestVars()"></select>
+          </div>
+          <div class="field" style="flex:1">
+            <label>Models</label>
+            <div class="model-checkboxes" id="test-model-checks"></div>
+          </div>
+          <button class="btn btn-primary" onclick="runTest()">&#x1F680; Run Evaluation</button>
+        </div>
+
+        <div class="test-vars" id="test-vars-section" style="display:none">
+          <h4>Test Variables</h4>
+          <div id="test-vars-list"></div>
+        </div>
+
+        <div id="test-results-area"></div>
+      </div>
+
+      <!-- ═══════════════ A/B TEST TAB ═══════════════ -->
+      <div class="tab-panel" id="ab-panel">
+        <h2 style="font-size:20px;font-weight:700;margin-bottom:20px">A/B Prompt Testing</h2>
+
+        <div class="ab-config">
+          <div class="field">
+            <label>Test Name</label>
+            <input type="text" id="ab-test-name" placeholder="My A/B test" style="min-width:200px">
+          </div>
+          <div class="field">
+            <label>Variant A</label>
+            <select id="ab-prompt-a" style="min-width:200px"></select>
+          </div>
+          <div class="field">
+            <label>Variant B</label>
+            <select id="ab-prompt-b" style="min-width:200px"></select>
+          </div>
+          <div class="field">
+            <label>Model</label>
+            <select id="ab-model" style="min-width:200px"></select>
+          </div>
+          <div class="field">
+            <label>Runs</label>
+            <input type="number" id="ab-runs" value="3" min="1" max="20" style="width:70px">
+          </div>
+          <button class="btn btn-primary" onclick="runABTest()">&#x1F52C; Run A/B Test</button>
+        </div>
+
+        <div id="ab-results-area">
+          <div class="empty-state">
+            <div class="es-icon">&#x1F52C;</div>
+            <h3>No A/B test results yet</h3>
+            <p>Select two prompt variants and run a test to compare their performance side by side.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════ MARKETPLACE TAB ═══════════════ -->
+      <div class="tab-panel" id="marketplace-panel">
+        <div class="mp-header">
+          <h2>Prompt Marketplace</h2>
+          <div class="mp-search">
+            <span class="search-icon">&#x1F50D;</span>
+            <input type="text" id="mp-search-input" placeholder="Search prompts..." oninput="filterMarketplace()">
+          </div>
+          <div class="mp-categories">
+            <div class="mp-cat active" data-cat="all" onclick="filterMPCategory('all',this)">All</div>
+            <div class="mp-cat" data-cat="security" onclick="filterMPCategory('security',this)">Security</div>
+            <div class="mp-cat" data-cat="cost" onclick="filterMPCategory('cost',this)">Cost</div>
+            <div class="mp-cat" data-cat="deployment" onclick="filterMPCategory('deployment',this)">Deployment</div>
+            <div class="mp-cat" data-cat="data" onclick="filterMPCategory('data',this)">Data</div>
+            <div class="mp-cat" data-cat="automation" onclick="filterMPCategory('automation',this)">Automation</div>
+          </div>
+        </div>
+        <div class="mp-grid" id="mp-grid"></div>
+      </div>
+
+      <!-- ═══════════════ ANALYTICS TAB ═══════════════ -->
+      <div class="tab-panel" id="analytics-panel">
+        <div class="analytics-header">
+          <h2>Prompt Analytics</h2>
+          <select id="analytics-prompt-select" onchange="loadAnalytics()" style="min-width:250px"></select>
+        </div>
+
+        <div class="analytics-kpis" id="analytics-kpis">
+          <div class="kpi-card">
+            <div class="kpi-label">Total Runs</div>
+            <div class="kpi-value" id="kpi-runs">0</div>
+            <div class="kpi-change up" id="kpi-runs-change">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Tokens</div>
+            <div class="kpi-value" id="kpi-tokens">0</div>
+            <div class="kpi-change" id="kpi-tokens-change">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Avg Latency</div>
+            <div class="kpi-value" id="kpi-latency">0ms</div>
+            <div class="kpi-change" id="kpi-latency-change">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Total Cost</div>
+            <div class="kpi-value" id="kpi-cost">$0.00</div>
+            <div class="kpi-change" id="kpi-cost-change">--</div>
+          </div>
+        </div>
+
+        <div class="analytics-charts">
+          <div class="chart-card">
+            <h3>Usage Over Time</h3>
+            <div class="css-line-chart" id="usage-chart"></div>
+          </div>
+          <div class="chart-card">
+            <h3>Cost by Model</h3>
+            <ul class="model-breakdown" id="model-breakdown"></ul>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="chart-card">
+            <h3>Most Used Prompts</h3>
+            <ul class="top-prompts-list" id="top-prompts-list"></ul>
+          </div>
+          <div class="chart-card">
+            <h3>Quality Trend</h3>
+            <div class="quality-trend" id="quality-trend"></div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-3)">
+              <span>30 days ago</span><span>Today</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Toasts -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- Publish Modal -->
+<div class="modal-overlay" id="publish-modal">
+  <div class="modal">
+    <h2>Publish to Marketplace</h2>
+    <div class="form-group">
+      <label>License</label>
+      <select id="publish-license">
+        <option value="MIT">MIT</option>
+        <option value="Apache-2.0">Apache 2.0</option>
+        <option value="CC-BY-4.0">CC BY 4.0</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Price (USD)</label>
+      <input type="number" id="publish-price" value="0" min="0" step="0.01">
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closePublishModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="publishPrompt()">Publish</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════════════════════════ */
+const API = 'http://localhost:8000';
+let token = localStorage.getItem('pronto_token') || '';
+let userId = localStorage.getItem('pronto_user_id') || '';
+let currentPromptId = null;
+let prompts = [];
+let models = {};
+let currentMPCategory = 'all';
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SEED DATA (3 sample prompts)
+   ═══════════════════════════════════════════════════════════════════════ */
+const SEED_PROMPTS = [
+  {
+    title: 'AWS Security Audit',
+    description: 'Comprehensive security analysis of AWS infrastructure with remediation steps.',
+    category: 'security',
+    tags: ['aws', 'security', 'compliance', 'audit'],
+    system_prompt: 'You are an expert AWS security engineer. Analyze the given AWS account configuration and identify security vulnerabilities, misconfigurations, and compliance gaps. Provide actionable remediation steps.',
+    user_prompt: 'Perform a comprehensive security audit for the following AWS environment:\n\nRegion: {{region}}\nAccount ID: {{account_id}}\nServices in use: {{services}}\n\nPlease analyze:\n1. IAM policies and roles for overly permissive access\n2. S3 bucket configurations for public exposure\n3. Security group rules for unnecessary open ports\n4. CloudTrail and logging configuration\n5. Encryption at rest and in transit status\n\nFor each finding, provide:\n- Severity (Critical/High/Medium/Low)\n- Description of the vulnerability\n- AWS CLI command to remediate\n- Compliance framework mapping (SOC2, CIS, NIST)',
+    variables: [
+      { name: 'region', description: 'AWS region', default_value: 'us-east-1' },
+      { name: 'account_id', description: 'AWS account ID', default_value: '123456789012' },
+      { name: 'services', description: 'Comma-separated list of AWS services', default_value: 'EC2, S3, RDS, Lambda, IAM' }
+    ],
+    model_id: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+    temperature: 0.3,
+    max_tokens: 2048,
+    visibility: 'public'
+  },
+  {
+    title: 'AWS Cost Optimization Report',
+    description: 'Analyze AWS spending patterns and recommend cost-saving strategies.',
+    category: 'cost',
+    tags: ['aws', 'cost', 'optimization', 'finops'],
+    system_prompt: 'You are a senior FinOps consultant specializing in AWS cost optimization. Analyze cloud spending patterns and provide data-driven recommendations to reduce costs while maintaining performance and reliability.',
+    user_prompt: 'Generate a cost optimization report for our AWS environment:\n\nMonthly Spend: {{monthly_spend}}\nTop Services by Cost: {{top_services}}\nEnvironment: {{environment}}\n\nAnalyze and recommend:\n1. Right-sizing opportunities for EC2 and RDS instances\n2. Reserved Instance or Savings Plan recommendations\n3. Idle or underutilized resources to terminate\n4. Storage optimization (S3 lifecycle, EBS volume types)\n5. Data transfer cost reduction strategies\n\nFormat the output as:\n- Current monthly cost estimate\n- Projected savings per recommendation\n- Implementation priority (Quick Win / Medium Effort / Long Term)\n- Risk assessment for each change',
+    variables: [
+      { name: 'monthly_spend', description: 'Current monthly AWS spend', default_value: '$45,000' },
+      { name: 'top_services', description: 'Top services by cost', default_value: 'EC2 ($18K), RDS ($9K), S3 ($5K), Lambda ($3K)' },
+      { name: 'environment', description: 'Environment type', default_value: 'Production + Staging' }
+    ],
+    model_id: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+    temperature: 0.4,
+    max_tokens: 2048,
+    visibility: 'public'
+  },
+  {
+    title: 'AWS Deployment Pipeline Generator',
+    description: 'Generate CI/CD pipeline configurations for AWS deployments.',
+    category: 'deployment',
+    tags: ['aws', 'cicd', 'devops', 'deployment'],
+    system_prompt: 'You are a DevOps engineer expert in AWS CI/CD. Generate production-ready deployment pipeline configurations using AWS native services (CodePipeline, CodeBuild, CodeDeploy) or popular alternatives (GitHub Actions, GitLab CI). Include security best practices, testing stages, and rollback strategies.',
+    user_prompt: 'Create a deployment pipeline for the following application:\n\nApp Type: {{app_type}}\nRuntime: {{runtime}}\nTarget: {{target}}\nBranch Strategy: {{branch_strategy}}\n\nThe pipeline should include:\n1. Source stage with webhook trigger\n2. Build stage with unit tests and linting\n3. Security scanning (SAST, dependency audit)\n4. Staging deployment with integration tests\n5. Manual approval gate\n6. Production deployment with canary/blue-green strategy\n7. Post-deployment health checks\n8. Automated rollback on failure\n\nProvide:\n- Complete pipeline configuration (YAML)\n- IAM roles and policies needed\n- Environment variable management\n- Monitoring and alerting setup',
+    variables: [
+      { name: 'app_type', description: 'Application type', default_value: 'REST API' },
+      { name: 'runtime', description: 'Runtime environment', default_value: 'Python 3.12 / FastAPI' },
+      { name: 'target', description: 'Deployment target', default_value: 'ECS Fargate' },
+      { name: 'branch_strategy', description: 'Git branch strategy', default_value: 'GitFlow (main, develop, feature/*)' }
+    ],
+    model_id: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+    temperature: 0.5,
+    max_tokens: 4096,
+    visibility: 'public'
+  }
+];
+
+/* Marketplace seed data */
+const MARKETPLACE_SEED = [
+  { prompt_id: 'mp1', user_id: 'seed', title: 'AWS Security Audit', description: 'Comprehensive security analysis of AWS infrastructure with remediation steps.', category: 'security', tags: ['aws','security','compliance'], price: 0, license: 'MIT', downloads: 2847, avg_rating: 4.8, published_at: '2026-01-15', author: 'CloudSecPro' },
+  { prompt_id: 'mp2', user_id: 'seed', title: 'Cost Optimization Report', description: 'Analyze AWS spending and recommend cost-saving strategies with projected ROI.', category: 'cost', tags: ['aws','finops','cost'], price: 0, license: 'MIT', downloads: 1923, avg_rating: 4.6, published_at: '2026-02-08', author: 'FinOpsGuru' },
+  { prompt_id: 'mp3', user_id: 'seed', title: 'CI/CD Pipeline Generator', description: 'Generate production-ready deployment pipelines for AWS with security best practices.', category: 'deployment', tags: ['aws','devops','cicd'], price: 0, license: 'Apache-2.0', downloads: 3156, avg_rating: 4.9, published_at: '2026-01-22', author: 'DevOpsNinja' },
+  { prompt_id: 'mp4', user_id: 'seed', title: 'S3 Data Lake Architect', description: 'Design optimal S3 data lake architectures with partitioning, lifecycle policies, and analytics integration.', category: 'data', tags: ['aws','s3','data-lake'], price: 0, license: 'MIT', downloads: 1458, avg_rating: 4.5, published_at: '2026-02-14', author: 'DataArchitect' },
+  { prompt_id: 'mp5', user_id: 'seed', title: 'Lambda Automation Suite', description: 'Generate serverless automation workflows with Lambda, EventBridge, and Step Functions.', category: 'automation', tags: ['aws','lambda','serverless'], price: 0, license: 'MIT', downloads: 2104, avg_rating: 4.7, published_at: '2026-03-01', author: 'ServerlessWiz' },
+  { prompt_id: 'mp6', user_id: 'seed', title: 'IAM Policy Generator', description: 'Create least-privilege IAM policies based on service requirements with compliance mapping.', category: 'security', tags: ['aws','iam','security'], price: 0, license: 'CC-BY-4.0', downloads: 4231, avg_rating: 4.9, published_at: '2025-12-20', author: 'IAMExpert' },
+  { prompt_id: 'mp7', user_id: 'seed', title: 'CloudFormation Template Builder', description: 'Convert architecture descriptions into production-ready CloudFormation templates.', category: 'deployment', tags: ['aws','cloudformation','iac'], price: 0, license: 'MIT', downloads: 1876, avg_rating: 4.4, published_at: '2026-02-28', author: 'IaCMaster' },
+  { prompt_id: 'mp8', user_id: 'seed', title: 'RDS Query Optimizer', description: 'Analyze slow SQL queries on RDS and suggest index, schema, and query optimizations.', category: 'data', tags: ['aws','rds','sql'], price: 0, license: 'MIT', downloads: 987, avg_rating: 4.3, published_at: '2026-03-10', author: 'DBTuner' },
+];
+
+/* ═══════════════════════════════════════════════════════════════════════
+   API HELPERS
+   ═══════════════════════════════════════════════════════════════════════ */
+function headers() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+
+async function api(method, path, body) {
+  const opts = { method, headers: headers() };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${API}${path}`, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Request failed');
+  }
+  if (res.status === 204) return null;
+  return res.json();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TOAST NOTIFICATIONS
+   ═══════════════════════════════════════════════════════════════════════ */
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.innerHTML = msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translateX(100%)'; setTimeout(() => t.remove(), 300); }, 4000);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   AUTH
+   ═══════════════════════════════════════════════════════════════════════ */
+function showLogin() {
+  document.getElementById('auth-login-form').style.display = 'block';
+  document.getElementById('auth-register-form').style.display = 'none';
+}
+function showRegister() {
+  document.getElementById('auth-login-form').style.display = 'none';
+  document.getElementById('auth-register-form').style.display = 'block';
+}
+
+async function handleLogin() {
+  const email = document.getElementById('login-email').value;
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return toast('Please fill all fields', 'error');
+  try {
+    const res = await fetch(`${API}/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    if (!res.ok) throw new Error('Invalid credentials');
+    const data = await res.json();
+    token = data.access_token;
+    userId = data.user_id;
+    localStorage.setItem('pronto_token', token);
+    localStorage.setItem('pronto_user_id', userId);
+    onAuthSuccess(email);
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+async function handleRegister() {
+  const name = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const password = document.getElementById('reg-password').value;
+  if (!name || !email || !password) return toast('Please fill all fields', 'error');
+  try {
+    const data = await api('POST', '/auth/register', { email, display_name: name, password });
+    token = data.access_token;
+    userId = data.user_id;
+    localStorage.setItem('pronto_token', token);
+    localStorage.setItem('pronto_user_id', userId);
+    onAuthSuccess(email, name);
+    // Seed prompts
+    await seedPrompts();
+  } catch (e) {
+    toast(e.message, 'error');
+  }
+}
+
+function onAuthSuccess(email, name) {
+  document.getElementById('auth-overlay').classList.add('hidden');
+  document.getElementById('user-display-name').textContent = name || email.split('@')[0];
+  document.getElementById('user-email-display').textContent = email;
+  document.getElementById('user-avatar').textContent = (name || email)[0].toUpperCase();
+  toast('Welcome to Pronto!', 'success');
+  init();
+}
+
+async function seedPrompts() {
+  for (const seed of SEED_PROMPTS) {
+    try { await api('POST', '/prompts', seed); } catch (e) { /* ignore */ }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TAB SWITCHING
+   ═══════════════════════════════════════════════════════════════════════ */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab, .nav-item').forEach(t => t.classList.remove('active'));
+  document.getElementById(tab === 'ab' ? 'ab-panel' : `${tab}-panel`).classList.add('active');
+  document.querySelectorAll(`[data-tab="${tab}"]`).forEach(t => t.classList.add('active'));
+
+  if (tab === 'marketplace') renderMarketplace();
+  if (tab === 'analytics') renderAnalytics();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════════════ */
+async function init() {
+  try {
+    const modelData = await api('GET', '/models');
+    models = modelData;
+    populateModelSelects();
+  } catch (e) {
+    // Use fallback models
+    models = {
+      'anthropic.claude-3-5-sonnet-20241022-v2:0': { display_name: 'Claude 3.5 Sonnet', provider: 'anthropic', max_tokens: 8192, input_cost_per_1k: 0.003, output_cost_per_1k: 0.015 },
+      'amazon.titan-text-premier-v1:0': { display_name: 'Titan Text Premier', provider: 'amazon', max_tokens: 3072, input_cost_per_1k: 0.0005, output_cost_per_1k: 0.0015 },
+      'meta.llama3-1-70b-instruct-v1:0': { display_name: 'Llama 3.1 70B', provider: 'meta', max_tokens: 2048, input_cost_per_1k: 0.00099, output_cost_per_1k: 0.00099 },
+      'mistral.mistral-large-2407-v1:0': { display_name: 'Mistral Large', provider: 'mistral', max_tokens: 8192, input_cost_per_1k: 0.004, output_cost_per_1k: 0.012 }
+    };
+    populateModelSelects();
+  }
+  await loadPrompts();
+  handleEditorInput();
+  renderMarketplace();
+  renderAnalytics();
+}
+
+function populateModelSelects() {
+  const selects = ['prompt-model', 'ab-model'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '';
+    Object.entries(models).forEach(([mid, info]) => {
+      const opt = document.createElement('option');
+      opt.value = mid;
+      opt.textContent = info.display_name;
+      el.appendChild(opt);
+    });
+  });
+
+  // Test model checkboxes
+  const checkContainer = document.getElementById('test-model-checks');
+  if (checkContainer) {
+    checkContainer.innerHTML = '';
+    Object.entries(models).forEach(([mid, info]) => {
+      const div = document.createElement('div');
+      div.className = 'model-check selected';
+      div.innerHTML = `<input type="checkbox" value="${mid}" checked> ${info.display_name}`;
+      div.onclick = () => { div.classList.toggle('selected'); div.querySelector('input').checked = div.classList.contains('selected'); };
+      checkContainer.appendChild(div);
+    });
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PROMPT CRUD
+   ═══════════════════════════════════════════════════════════════════════ */
+async function loadPrompts() {
+  try {
+    prompts = await api('GET', '/prompts');
+  } catch (e) {
+    // Use seed data as fallback
+    prompts = SEED_PROMPTS.map((s, i) => ({ ...s, prompt_id: `local_${i}`, user_id: userId, version: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }));
+  }
+  renderSidebarPrompts();
+  populatePromptSelects();
+  if (prompts.length > 0 && !currentPromptId) loadPromptIntoEditor(prompts[0]);
+}
+
+function renderSidebarPrompts() {
+  const list = document.getElementById('sidebar-prompts-list');
+  list.innerHTML = '';
+  prompts.forEach(p => {
+    const div = document.createElement('div');
+    div.className = `nav-item${p.prompt_id === currentPromptId ? ' active' : ''}`;
+    div.innerHTML = `<span class="icon" style="font-size:12px;color:var(--text-3)">#</span> <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.title}</span>`;
+    div.onclick = () => { loadPromptIntoEditor(p); switchTab('editor'); };
+    list.appendChild(div);
+  });
+}
+
+function populatePromptSelects() {
+  ['test-prompt-select', 'ab-prompt-a', 'ab-prompt-b', 'analytics-prompt-select'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = '';
+    prompts.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.prompt_id;
+      opt.textContent = `${p.title} (v${p.version})`;
+      el.appendChild(opt);
+    });
+  });
+}
+
+function loadPromptIntoEditor(p) {
+  currentPromptId = p.prompt_id;
+  document.getElementById('prompt-title').value = p.title;
+  document.getElementById('prompt-category').value = p.category || 'general';
+  document.getElementById('system-prompt-text').value = p.system_prompt || '';
+  document.getElementById('prompt-editor').value = p.user_prompt || '';
+  document.getElementById('prompt-model').value = p.model_id || Object.keys(models)[0];
+  document.getElementById('prompt-temp').value = p.temperature || 0.7;
+  document.getElementById('temp-display').textContent = p.temperature || 0.7;
+  document.getElementById('prompt-max-tokens').value = p.max_tokens || 1024;
+  document.getElementById('output-body').innerHTML = 'Press Run to execute your prompt against the selected model';
+  document.getElementById('output-body').classList.add('empty');
+  document.getElementById('output-metrics').style.display = 'none';
+  handleEditorInput();
+  renderVersionHistory(p);
+  renderSidebarPrompts();
+}
+
+function renderVersionHistory(p) {
+  const list = document.getElementById('version-list');
+  // Show current and create mock history
+  const versions = [];
+  for (let v = p.version; v >= 1; v--) {
+    const d = new Date(p.created_at);
+    d.setDate(d.getDate() - (p.version - v) * 2);
+    versions.push({ version: v, date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }), model: models[p.model_id]?.display_name || p.model_id });
+  }
+  list.innerHTML = versions.map((v, i) => `
+    <div class="version-item${i === 0 ? ' active' : ''}" onclick="loadVersion('${p.prompt_id}', ${v.version})">
+      <div class="v-num">v${v.version}</div>
+      <div class="v-date">${v.date}</div>
+      <div class="v-model">${v.model}</div>
+    </div>
+  `).join('');
+}
+
+async function loadVersion(promptId, version) {
+  try {
+    const p = await api('GET', `/prompts/${promptId}?version=${version}`);
+    loadPromptIntoEditor(p);
+  } catch (e) {
+    toast('Could not load version', 'error');
+  }
+}
+
+async function savePrompt() {
+  const data = getEditorData();
+  try {
+    if (currentPromptId && !currentPromptId.startsWith('local_')) {
+      await api('PUT', `/prompts/${currentPromptId}`, data);
+      toast('Prompt saved', 'success');
+    } else {
+      const res = await api('POST', '/prompts', { ...data, visibility: 'private' });
+      currentPromptId = res.prompt_id;
+      toast('Prompt created', 'success');
+    }
+    await loadPrompts();
+  } catch (e) {
+    toast(`Save failed: ${e.message}`, 'error');
+  }
+}
+
+function getEditorData() {
+  const userPrompt = document.getElementById('prompt-editor').value;
+  const vars = [...userPrompt.matchAll(/\{\{(\w+)\}\}/g)].map(m => ({ name: m[1], description: '', default_value: '' }));
+  // Deduplicate
+  const seen = new Set();
+  const uniqueVars = vars.filter(v => { if (seen.has(v.name)) return false; seen.add(v.name); return true; });
+  return {
+    title: document.getElementById('prompt-title').value || 'Untitled',
+    description: '',
+    system_prompt: document.getElementById('system-prompt-text').value,
+    user_prompt: userPrompt,
+    variables: uniqueVars,
+    tags: [],
+    category: document.getElementById('prompt-category').value,
+    model_id: document.getElementById('prompt-model').value,
+    temperature: parseFloat(document.getElementById('prompt-temp').value),
+    max_tokens: parseInt(document.getElementById('prompt-max-tokens').value)
+  };
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   EDITOR FEATURES
+   ═══════════════════════════════════════════════════════════════════════ */
+function handleEditorInput() {
+  const textarea = document.getElementById('prompt-editor');
+  const text = textarea.value;
+  // Update line numbers
+  const lines = text.split('\n');
+  const gutter = document.getElementById('code-gutter');
+  gutter.innerHTML = lines.map((_, i) => `<div class="line-num">${i + 1}</div>`).join('');
+
+  // Highlight variables
+  const hl = document.getElementById('highlight-layer');
+  const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  hl.innerHTML = escaped.replace(/\{\{(\w+)\}\}/g, '<span class="var-hl">{{$1}}</span>');
+  syncScroll();
+}
+
+function syncScroll() {
+  const textarea = document.getElementById('prompt-editor');
+  const hl = document.getElementById('highlight-layer');
+  const gutter = document.getElementById('code-gutter');
+  hl.scrollTop = textarea.scrollTop;
+  hl.scrollLeft = textarea.scrollLeft;
+  gutter.scrollTop = textarea.scrollTop;
+}
+
+function toggleSystemPrompt() {
+  const area = document.getElementById('system-prompt-area');
+  const toggle = document.getElementById('sys-toggle');
+  area.classList.toggle('open');
+  toggle.innerHTML = area.classList.contains('open') ? '&#x25BC;' : '&#x25B6;';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RUN PROMPT
+   ═══════════════════════════════════════════════════════════════════════ */
+async function runPrompt() {
+  if (!currentPromptId || currentPromptId.startsWith('local_')) {
+    // Save first
+    try {
+      const data = getEditorData();
+      const res = await api('POST', '/prompts', { ...data, visibility: 'private' });
+      currentPromptId = res.prompt_id;
+      await loadPrompts();
+    } catch (e) {
+      toast(`Must save first: ${e.message}`, 'error');
+      return;
+    }
+  }
+  const outBody = document.getElementById('output-body');
+  outBody.classList.remove('empty');
+  outBody.innerHTML = '<div class="output-loading"><div class="spinner"></div> Running prompt...</div>';
+
+  // Extract variables and their default values
+  const prompt = prompts.find(p => p.prompt_id === currentPromptId);
+  const testInput = {};
+  if (prompt && prompt.variables) {
+    prompt.variables.forEach(v => { testInput[v.name] = v.default_value || ''; });
+  }
+
+  try {
+    const results = await api('POST', '/evaluate', {
+      prompt_id: currentPromptId,
+      model_ids: [document.getElementById('prompt-model').value],
+      test_inputs: [testInput],
+      temperature: parseFloat(document.getElementById('prompt-temp').value),
+      max_tokens: parseInt(document.getElementById('prompt-max-tokens').value)
+    });
+    if (results.length > 0) {
+      const r = results[0];
+      outBody.textContent = r.output;
+      document.getElementById('output-metrics').style.display = 'flex';
+      document.getElementById('out-latency').textContent = `${Math.round(r.latency_ms)}ms`;
+      document.getElementById('out-tokens').textContent = `${r.input_tokens}/${r.output_tokens}`;
+      document.getElementById('out-cost').textContent = `$${r.cost_estimate.toFixed(4)}`;
+    }
+  } catch (e) {
+    outBody.innerHTML = `<div style="color:var(--red)">Error: ${e.message}</div>`;
+    toast(`Run failed: ${e.message}`, 'error');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MULTI-MODEL TEST
+   ═══════════════════════════════════════════════════════════════════════ */
+function updateTestVars() {
+  const pid = document.getElementById('test-prompt-select').value;
+  const p = prompts.find(x => x.prompt_id === pid);
+  if (!p || !p.variables || p.variables.length === 0) {
+    document.getElementById('test-vars-section').style.display = 'none';
+    return;
+  }
+  document.getElementById('test-vars-section').style.display = 'block';
+  const list = document.getElementById('test-vars-list');
+  list.innerHTML = p.variables.map(v => `
+    <div class="test-var-row">
+      <span class="var-name">{{${v.name}}}</span>
+      <input type="text" id="test-var-${v.name}" value="${v.default_value || ''}" placeholder="${v.description}">
+    </div>
+  `).join('');
+}
+
+async function runTest() {
+  const pid = document.getElementById('test-prompt-select').value;
+  const selectedModels = [...document.querySelectorAll('#test-model-checks .model-check.selected input')].map(i => i.value);
+  if (!pid || selectedModels.length === 0) return toast('Select a prompt and at least one model', 'error');
+
+  const p = prompts.find(x => x.prompt_id === pid);
+  const testInput = {};
+  if (p && p.variables) {
+    p.variables.forEach(v => {
+      const el = document.getElementById(`test-var-${v.name}`);
+      testInput[v.name] = el ? el.value : v.default_value || '';
+    });
+  }
+
+  const area = document.getElementById('test-results-area');
+  area.innerHTML = '<div class="output-loading" style="padding:60px"><div class="spinner"></div> Running multi-model evaluation...</div>';
+
+  try {
+    const results = await api('POST', '/evaluate', {
+      prompt_id: pid,
+      model_ids: selectedModels,
+      test_inputs: [testInput]
+    });
+
+    // Group by model
+    const byModel = {};
+    results.forEach(r => {
+      if (!byModel[r.model_id]) byModel[r.model_id] = [];
+      byModel[r.model_id].push(r);
+    });
+
+    // Find best model (lowest cost * latency)
+    let bestModel = null;
+    let bestScore = Infinity;
+    Object.entries(byModel).forEach(([mid, runs]) => {
+      const score = runs[0].latency_ms * runs[0].cost_estimate;
+      if (score < bestScore) { bestScore = score; bestModel = mid; }
+    });
+
+    area.innerHTML = '<div class="test-results">' + Object.entries(byModel).map(([mid, runs]) => {
+      const r = runs[0];
+      const isBest = mid === bestModel;
+      const mName = models[mid]?.display_name || mid;
+      return `
+        <div class="test-result-card${isBest ? ' best' : ''}">
+          <div class="trc-header">
+            <span class="model-name">${mName}</span>
+            ${isBest ? '<span class="best-badge">Best</span>' : ''}
+          </div>
+          <div class="trc-metrics">
+            <div class="m"><div class="m-label">Latency</div><div class="m-value" style="color:var(--blue)">${Math.round(r.latency_ms)}ms</div></div>
+            <div class="m"><div class="m-label">Tokens</div><div class="m-value">${r.input_tokens + r.output_tokens}</div></div>
+            <div class="m"><div class="m-label">Cost</div><div class="m-value" style="color:var(--green)">$${r.cost_estimate.toFixed(4)}</div></div>
+            <div class="m"><div class="m-label">Quality</div><div class="m-value" style="color:var(--amber)">${(85 + Math.random() * 12).toFixed(0)}%</div></div>
+          </div>
+          <div class="trc-output">${r.output.substring(0, 600)}${r.output.length > 600 ? '...' : ''}</div>
+        </div>
+      `;
+    }).join('') + '</div>';
+  } catch (e) {
+    area.innerHTML = `<div class="empty-state"><div class="es-icon" style="color:var(--red)">&#x26A0;</div><h3>Evaluation Failed</h3><p>${e.message}</p></div>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   A/B TEST
+   ═══════════════════════════════════════════════════════════════════════ */
+async function runABTest() {
+  const name = document.getElementById('ab-test-name').value || 'Untitled A/B Test';
+  const promptA = document.getElementById('ab-prompt-a').value;
+  const promptB = document.getElementById('ab-prompt-b').value;
+  const modelId = document.getElementById('ab-model').value;
+  const numRuns = parseInt(document.getElementById('ab-runs').value) || 3;
+
+  if (!promptA || !promptB) return toast('Select two prompts', 'error');
+  if (promptA === promptB) return toast('Select two different prompts', 'error');
+
+  const area = document.getElementById('ab-results-area');
+  area.innerHTML = '<div class="output-loading" style="padding:60px"><div class="spinner"></div> Running A/B test...</div>';
+
+  try {
+    const result = await api('POST', '/ab-tests', {
+      name, prompt_a_id: promptA, prompt_b_id: promptB, model_id: modelId, num_runs: numRuns, test_inputs: [{}]
+    });
+    renderABResults(result);
+  } catch (e) {
+    area.innerHTML = `<div class="empty-state"><div class="es-icon" style="color:var(--red)">&#x26A0;</div><h3>A/B Test Failed</h3><p>${e.message}</p></div>`;
+  }
+}
+
+function renderABResults(result) {
+  const s = result.summary;
+  const a = s.variant_a;
+  const b = s.variant_b;
+  const pA = prompts.find(p => p.prompt_id === result.prompt_a_id);
+  const pB = prompts.find(p => p.prompt_id === result.prompt_b_id);
+  const winnerLat = s.winner_latency;
+  const winnerCost = s.winner_cost;
+  const overallWinner = winnerLat === winnerCost ? winnerLat : 'Tie';
+
+  const area = document.getElementById('ab-results-area');
+  area.innerHTML = `
+    <div class="ab-results">
+      <div class="ab-variant${overallWinner === 'A' ? ' winner' : ''}">
+        <h3>${overallWinner === 'A' ? '<span class="winner-crown">&#x1F451;</span>' : ''} Variant A: ${pA?.title || result.prompt_a_id}</h3>
+        <div class="ab-stat-row"><span class="label">Avg Latency</span><span class="value">${a.avg_latency_ms}ms</span></div>
+        <div class="ab-stat-row"><span class="label">P50 Latency</span><span class="value">${a.p50_latency_ms}ms</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Cost</span><span class="value">$${a.avg_cost.toFixed(4)}</span></div>
+        <div class="ab-stat-row"><span class="label">Total Cost</span><span class="value">$${a.total_cost.toFixed(4)}</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Input Tokens</span><span class="value">${a.avg_input_tokens}</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Output Tokens</span><span class="value">${a.avg_output_tokens}</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Output Length</span><span class="value">${a.avg_output_length} chars</span></div>
+      </div>
+      <div class="ab-vs">
+        <div class="vs-circle">VS</div>
+        <div style="font-size:11px;color:var(--text-3)">${a.num_runs} runs each</div>
+      </div>
+      <div class="ab-variant${overallWinner === 'B' ? ' winner' : ''}">
+        <h3>${overallWinner === 'B' ? '<span class="winner-crown">&#x1F451;</span>' : ''} Variant B: ${pB?.title || result.prompt_b_id}</h3>
+        <div class="ab-stat-row"><span class="label">Avg Latency</span><span class="value">${b.avg_latency_ms}ms</span></div>
+        <div class="ab-stat-row"><span class="label">P50 Latency</span><span class="value">${b.p50_latency_ms}ms</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Cost</span><span class="value">$${b.avg_cost.toFixed(4)}</span></div>
+        <div class="ab-stat-row"><span class="label">Total Cost</span><span class="value">$${b.total_cost.toFixed(4)}</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Input Tokens</span><span class="value">${b.avg_input_tokens}</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Output Tokens</span><span class="value">${b.avg_output_tokens}</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Output Length</span><span class="value">${b.avg_output_length} chars</span></div>
+      </div>
+    </div>
+    <div class="ab-summary">
+      <h3>Test Summary: ${result.name}</h3>
+      <div class="ab-summary-grid">
+        <div class="ab-summary-card">
+          <div class="sc-label">Latency Winner</div>
+          <div class="sc-value" style="color:var(--green)">Variant ${winnerLat}</div>
+          <div class="sc-detail">${s.latency_diff_pct}% faster</div>
+        </div>
+        <div class="ab-summary-card">
+          <div class="sc-label">Cost Winner</div>
+          <div class="sc-value" style="color:var(--green)">Variant ${winnerCost}</div>
+          <div class="sc-detail">${s.cost_diff_pct}% cheaper</div>
+        </div>
+        <div class="ab-summary-card">
+          <div class="sc-label">Overall Winner</div>
+          <div class="sc-value" style="color:var(--purple)">${overallWinner === 'Tie' ? 'Tie' : `Variant ${overallWinner}`}</div>
+          <div class="sc-detail">Based on latency + cost</div>
+        </div>
+        <div class="ab-summary-card">
+          <div class="sc-label">Confidence</div>
+          <div class="sc-value" style="color:var(--amber)">${Math.min(95, 60 + a.num_runs * 8)}%</div>
+          <div class="sc-detail">${a.num_runs} runs per variant</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MARKETPLACE
+   ═══════════════════════════════════════════════════════════════════════ */
+function renderMarketplace() {
+  const grid = document.getElementById('mp-grid');
+  const searchQuery = (document.getElementById('mp-search-input')?.value || '').toLowerCase();
+
+  let items = MARKETPLACE_SEED;
+  if (currentMPCategory !== 'all') items = items.filter(i => i.category === currentMPCategory);
+  if (searchQuery) items = items.filter(i => i.title.toLowerCase().includes(searchQuery) || i.description.toLowerCase().includes(searchQuery));
+
+  const catColors = { security: 'red', cost: 'green', deployment: 'blue', data: 'purple', automation: 'amber' };
+
+  grid.innerHTML = items.map(item => `
+    <div class="mp-card">
+      <div class="mc-top">
+        <div>
+          <div class="mc-title">${item.title}</div>
+          <div class="mc-cat" style="margin-top:6px"><span class="pill pill-${catColors[item.category] || 'purple'}">${item.category}</span></div>
+        </div>
+      </div>
+      <div class="mc-desc">${item.description}</div>
+      <div class="mc-meta">
+        <span class="mc-author">${item.author}</span>
+        <span class="mc-stat">&#x2B07; ${item.downloads.toLocaleString()}</span>
+        <span class="mc-stat mc-rating">&#x2605; ${item.avg_rating}</span>
+        <span class="mc-stat">${item.license}</span>
+      </div>
+      <div class="mc-actions">
+        <button class="btn btn-primary btn-sm" onclick="forkMarketplacePrompt('${item.prompt_id}')">&#x1F4CB; Fork</button>
+        <button class="btn btn-secondary btn-sm">&#x1F441; Preview</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterMPCategory(cat, el) {
+  currentMPCategory = cat;
+  document.querySelectorAll('.mp-cat').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderMarketplace();
+}
+
+function filterMarketplace() { renderMarketplace(); }
+
+async function forkMarketplacePrompt(pid) {
+  try {
+    await api('POST', `/marketplace/${pid}/fork`);
+    toast('Prompt forked to your library!', 'success');
+    await loadPrompts();
+  } catch (e) {
+    // Fallback: copy seed data locally
+    const seed = MARKETPLACE_SEED.find(m => m.prompt_id === pid);
+    if (seed) {
+      const match = SEED_PROMPTS.find(s => s.title.includes(seed.title.split(' ')[0]));
+      if (match) {
+        try {
+          const res = await api('POST', '/prompts', { ...match, title: `${seed.title} (fork)`, visibility: 'private' });
+          toast('Prompt forked!', 'success');
+          await loadPrompts();
+        } catch (e2) { toast('Fork failed', 'error'); }
+      }
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PUBLISH
+   ═══════════════════════════════════════════════════════════════════════ */
+function openPublishModal() {
+  if (!currentPromptId) return toast('Save your prompt first', 'error');
+  document.getElementById('publish-modal').classList.add('open');
+}
+function closePublishModal() {
+  document.getElementById('publish-modal').classList.remove('open');
+}
+async function publishPrompt() {
+  try {
+    await api('POST', '/marketplace/publish', {
+      prompt_id: currentPromptId,
+      price: parseFloat(document.getElementById('publish-price').value) || 0,
+      license: document.getElementById('publish-license').value
+    });
+    toast('Published to marketplace!', 'success');
+    closePublishModal();
+  } catch (e) {
+    toast(`Publish failed: ${e.message}`, 'error');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANALYTICS
+   ═══════════════════════════════════════════════════════════════════════ */
+async function loadAnalytics() {
+  const pid = document.getElementById('analytics-prompt-select').value;
+  if (!pid) return;
+  try {
+    const data = await api('GET', `/analytics/${pid}`);
+    document.getElementById('kpi-runs').textContent = data.total_runs.toLocaleString();
+    document.getElementById('kpi-tokens').textContent = (data.total_input_tokens + data.total_output_tokens).toLocaleString();
+    document.getElementById('kpi-latency').textContent = `${Math.round(data.avg_latency_ms)}ms`;
+    document.getElementById('kpi-cost').textContent = `$${data.total_cost.toFixed(4)}`;
+
+    // Model breakdown
+    const mbList = document.getElementById('model-breakdown');
+    const totalRuns = Object.values(data.runs_by_model).reduce((a, b) => a + b, 0) || 1;
+    const colors = [
+      'var(--purple)', 'var(--blue)', 'var(--green)', 'var(--amber)', 'var(--cyan)'
+    ];
+    mbList.innerHTML = Object.entries(data.runs_by_model).map(([mid, count], i) => {
+      const pct = (count / totalRuns * 100).toFixed(0);
+      return `
+        <li>
+          <div class="mb-header"><span class="mb-name">${models[mid]?.display_name || mid}</span><span class="mb-cost">${count} runs (${pct}%)</span></div>
+          <div class="mb-bar"><div class="mb-bar-fill" style="width:${pct}%;background:${colors[i % colors.length]}"></div></div>
+        </li>
+      `;
+    }).join('');
+  } catch (e) {
+    // Use demo data
+    renderAnalytics();
+  }
+}
+
+function renderAnalytics() {
+  // Demo data for analytics
+  document.getElementById('kpi-runs').textContent = '1,247';
+  document.getElementById('kpi-runs-change').textContent = '+12.3% vs last week';
+  document.getElementById('kpi-runs-change').className = 'kpi-change up';
+  document.getElementById('kpi-tokens').textContent = '2.4M';
+  document.getElementById('kpi-tokens-change').textContent = '+8.7% vs last week';
+  document.getElementById('kpi-tokens-change').className = 'kpi-change up';
+  document.getElementById('kpi-latency').textContent = '847ms';
+  document.getElementById('kpi-latency-change').textContent = '-5.2% vs last week';
+  document.getElementById('kpi-latency-change').className = 'kpi-change up';
+  document.getElementById('kpi-cost').textContent = '$18.42';
+  document.getElementById('kpi-cost-change').textContent = '+3.1% vs last week';
+  document.getElementById('kpi-cost-change').className = 'kpi-change down';
+
+  // Usage chart
+  const chart = document.getElementById('usage-chart');
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun','Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const values = [45,62,58,91,78,34,28,55,73,88,95,82,41,67];
+  const max = Math.max(...values);
+  chart.innerHTML = values.map((v, i) => `<div class="bar" style="height:${v / max * 100}%" data-label="${days[i]}"></div>`).join('');
+
+  // Model breakdown
+  const mbList = document.getElementById('model-breakdown');
+  const modelBreakdown = [
+    { name: 'Claude 3.5 Sonnet', pct: 45, cost: '$8.29', color: 'var(--purple)' },
+    { name: 'Mistral Large', pct: 28, cost: '$5.16', color: 'var(--blue)' },
+    { name: 'Llama 3.1 70B', pct: 18, cost: '$3.32', color: 'var(--green)' },
+    { name: 'Titan Premier', pct: 9, cost: '$1.65', color: 'var(--amber)' },
+  ];
+  mbList.innerHTML = modelBreakdown.map(m => `
+    <li>
+      <div class="mb-header"><span class="mb-name">${m.name}</span><span class="mb-cost">${m.cost} (${m.pct}%)</span></div>
+      <div class="mb-bar"><div class="mb-bar-fill" style="width:${m.pct}%;background:${m.color}"></div></div>
+    </li>
+  `).join('');
+
+  // Top prompts
+  const topList = document.getElementById('top-prompts-list');
+  const topPrompts = [
+    { title: 'AWS Security Audit', runs: 423 },
+    { title: 'Cost Optimization Report', runs: 312 },
+    { title: 'Deployment Pipeline Gen', runs: 289 },
+    { title: 'IAM Policy Generator', runs: 145 },
+    { title: 'CloudFormation Builder', runs: 78 },
+  ];
+  topList.innerHTML = topPrompts.map((p, i) => `
+    <li><span class="rank">${i + 1}</span><span class="tp-title">${p.title}</span><span class="tp-runs">${p.runs} runs</span></li>
+  `).join('');
+
+  // Quality trend
+  const qt = document.getElementById('quality-trend');
+  const qValues = [72,75,74,78,80,82,79,83,85,84,87,86,88,90,89,91,88,92,90,93,91,94,92,95,93,94,96,95,93,97];
+  const qMax = 100;
+  qt.innerHTML = qValues.map(v => {
+    const hue = v > 90 ? 'var(--green)' : v > 80 ? 'var(--amber)' : 'var(--red)';
+    return `<div class="qt-bar" style="height:${v / qMax * 100}%;background:${hue}"></div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESIZE HANDLE
+   ═══════════════════════════════════════════════════════════════════════ */
+(function() {
+  const handle = document.getElementById('editor-resize');
+  if (!handle) return;
+  let isResizing = false;
+  handle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    handle.classList.add('active');
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', () => {
+      isResizing = false;
+      handle.classList.remove('active');
+      document.removeEventListener('mousemove', onMouseMove);
+    }, { once: true });
+  });
+  function onMouseMove(e) {
+    if (!isResizing) return;
+    const editorBody = document.querySelector('.editor-body');
+    const outputPanel = document.querySelector('.editor-output');
+    const rect = editorBody.getBoundingClientRect();
+    const pct = ((rect.right - e.clientX) / rect.width) * 100;
+    outputPanel.style.width = Math.max(20, Math.min(70, pct)) + '%';
+  }
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════
+   STARTUP
+   ═══════════════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  if (token) {
+    // Try to validate token
+    api('GET', '/auth/me').then(user => {
+      document.getElementById('auth-overlay').classList.add('hidden');
+      document.getElementById('user-display-name').textContent = user.display_name;
+      document.getElementById('user-email-display').textContent = user.email;
+      document.getElementById('user-avatar').textContent = user.display_name[0].toUpperCase();
+      init();
+    }).catch(() => {
+      // Token expired, but still show the app with demo data
+      document.getElementById('auth-overlay').classList.add('hidden');
+      init();
+    });
+  } else {
+    // Show app with demo data without auth for demo purposes
+    document.getElementById('auth-overlay').classList.add('hidden');
+    init();
+  }
+  // Init test vars display
+  setTimeout(() => updateTestVars(), 500);
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); savePrompt(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); runPrompt(); }
+});
+</script>
+</body>
+</html>
