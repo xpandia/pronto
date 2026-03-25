@@ -1,9 +1,11 @@
 # Pronto -- AWS Prompt the Planet Challenge Submission
 
 **Challenge:** AWS Prompt the Planet
-**Deadline:** May 31, 2026
+**Deadline:** June 10, 2026
 **Platform:** DoraHacks
 **Repo:** https://github.com/xpandia/pronto
+
+> **Important:** This hackathon evaluates ACTUAL PROMPTS, not just code. The 5 production-ready AWS prompts below are the primary submission artifacts. Pronto is the platform that makes creating, testing, and shipping prompts like these a repeatable process.
 
 ---
 
@@ -312,24 +314,43 @@ Highlight the AWS-native architecture:
 
 ## Quick Start
 
+### Demo Mode (No AWS credentials required)
+
 ```bash
 # Clone the repo
 git clone https://github.com/xpandia/pronto.git
-cd pronto
+cd pronto/src/backend
 
-# Install backend dependencies
-cd src/backend
+# Install dependencies
 pip install -r requirements.txt
 
-# Set environment variables
+# Start in demo mode (mocks Bedrock + DynamoDB, seeds 3 marketplace prompts)
+PRONTO_DEMO=1 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+# Health check
+curl http://localhost:8000/health
+
+# List seeded marketplace prompts
+curl http://localhost:8000/marketplace
+
+# List supported models
+curl http://localhost:8000/models
+
+# Evaluate a prompt (returns mock results in demo mode)
+curl -X POST http://localhost:8000/evaluate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer demo-token" \
+  -d '{"prompt_id": "demo-prompt-1", "model_ids": ["anthropic.claude-3-5-sonnet-20241022-v2:0"]}'
+```
+
+### Full Mode (with AWS credentials)
+
+```bash
 export JWT_SECRET="your-secret-key"
 export ADMIN_API_KEY="your-admin-key"
 export AWS_DEFAULT_REGION="us-east-1"
 
-# Run locally
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-
-# Frontend: open src/frontend/index.html in a browser
 ```
 
 ---

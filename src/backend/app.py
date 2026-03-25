@@ -1,12 +1,15 @@
 """
 Pronto — The IDE for Prompts
 FastAPI backend: CRUD, evaluation, A/B testing, marketplace, analytics.
+
+Set PRONTO_DEMO=1 to run without AWS credentials (mocks Bedrock + DynamoDB).
 """
 
 from __future__ import annotations
 
 import json
 import os
+import random
 import statistics
 import time
 import uuid
@@ -15,22 +18,77 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any
 
-import boto3
-from botocore.exceptions import ClientError
+DEMO_MODE: bool = os.environ.get("PRONTO_DEMO", "").strip() in ("1", "true", "yes")
+
+if not DEMO_MODE:
+    import boto3
+    from botocore.exceptions import ClientError
+
 from fastapi import FastAPI, HTTPException, Query, Depends, Header, status
 from fastapi.middleware.cors import CORSMiddleware
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from pydantic import BaseModel, Field
 
-from aws_config import (
-    SUPPORTED_MODELS,
-    get_bedrock_runtime_client,
-    get_table,
-    get_s3_client,
-    S3_BUCKET_NAME,
-    generate_cloudformation_template,
-)
+if DEMO_MODE:
+    # Provide lightweight stubs so the rest of the module can reference them
+    class _SUPPORTED_MODELS_STUB(dict):
+        pass
+
+    SUPPORTED_MODELS: dict[str, dict[str, Any]] = {
+        "anthropic.claude-3-5-sonnet-20241022-v2:0": {
+            "provider": "anthropic",
+            "display_name": "Claude 3.5 Sonnet v2",
+            "max_tokens": 8192,
+            "input_cost_per_1k": 0.003,
+            "output_cost_per_1k": 0.015,
+        },
+        "anthropic.claude-3-5-haiku-20241022-v1:0": {
+            "provider": "anthropic",
+            "display_name": "Claude 3.5 Haiku",
+            "max_tokens": 8192,
+            "input_cost_per_1k": 0.001,
+            "output_cost_per_1k": 0.005,
+        },
+        "amazon.titan-text-premier-v1:0": {
+            "provider": "amazon",
+            "display_name": "Amazon Titan Text Premier",
+            "max_tokens": 3072,
+            "input_cost_per_1k": 0.0005,
+            "output_cost_per_1k": 0.0015,
+        },
+        "meta.llama3-1-70b-instruct-v1:0": {
+            "provider": "meta",
+            "display_name": "Llama 3.1 70B Instruct",
+            "max_tokens": 2048,
+            "input_cost_per_1k": 0.00099,
+            "output_cost_per_1k": 0.00099,
+        },
+    }
+
+    def get_bedrock_runtime_client():
+        return None
+
+    def get_table(name: str):
+        return None
+
+    def get_s3_client():
+        return None
+
+    S3_BUCKET_NAME = "pronto-demo-artifacts"
+
+    def generate_cloudformation_template():
+        return {"info": "Demo mode -- no CloudFormation generated"}
+
+else:
+    from aws_config import (
+        SUPPORTED_MODELS,
+        get_bedrock_runtime_client,
+        get_table,
+        get_s3_client,
+        S3_BUCKET_NAME,
+        generate_cloudformation_template,
+    )
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Security configuration
@@ -51,12 +109,12 @@ app = FastAPI(
     version="0.1.0",
 )
 ALLOWED_ORIGINS: list[str] = os.environ.get(
-    "ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:8000"
+    "ALLOWED_ORIGINS", "*"
 ).split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -241,6 +299,8 @@ async def get_current_user(
     authorization: str | None = Header(default=None),
 ) -> str:
     """Extract and validate user_id from a JWT Bearer token."""
+    if DEMO_MODE:
+        return "demo-user-001"
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -271,6 +331,137 @@ async def _require_admin(
 
 
 # ═══════════════════════════════════════════════════════════════════════════
+# Demo mode: in-memory stores & seed data
+# ═══════════════════════════════════════════════════════════════════════════
+
+_demo_prompts: dict[str, dict[str, Any]] = {}
+_demo_marketplace: list[dict[str, Any]] = []
+_demo_evaluations: list[dict[str, Any]] = []
+
+
+def _seed_demo_data() -> None:
+    """Populate in-memory stores with realistic demo data."""
+    now = _now_iso()
+    user_id = "demo-user-001"
+
+    seed_prompts = [
+        {
+            "prompt_id": "demo-prompt-1",
+            "user_id": user_id,
+            "version": 1,
+            "title": "AWS Cost Optimization Analyzer",
+            "description": "Analyzes AWS spending patterns and generates actionable cost reduction recommendations with CLI commands.",
+            "system_prompt": "You are an AWS Cost Optimization specialist. Provide concrete, actionable recommendations with exact AWS CLI commands.",
+            "user_prompt": "Analyze the following AWS cost report and provide: 1) Top 5 quick wins with CLI commands 2) 30/60/90 day roadmap 3) Projected savings table.\n\nCost data:\n{{cost_data}}",
+            "variables": [{"name": "cost_data", "description": "AWS Cost Explorer CSV or JSON export", "default_value": ""}],
+            "tags": ["aws", "cost-optimization", "finops"],
+            "category": "infrastructure",
+            "visibility": "public",
+            "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "temperature": 0.3,
+            "max_tokens": 4096,
+            "created_at": now,
+            "updated_at": now,
+            "price": 0.0,
+            "license": "MIT",
+            "downloads": 234,
+            "avg_rating": 4.7,
+            "published_at": now,
+        },
+        {
+            "prompt_id": "demo-prompt-2",
+            "user_id": user_id,
+            "version": 1,
+            "title": "Serverless API Generator",
+            "description": "Generates complete SAM templates with Lambda functions, DynamoDB tables, and CI/CD pipelines for serverless APIs.",
+            "system_prompt": "You are an AWS serverless architect. Generate production-ready SAM templates with full observability (X-Ray, CloudWatch, Powertools).",
+            "user_prompt": "Design a serverless API for: {{api_description}}\n\nRequirements:\n- Authentication: {{auth_type}}\n- Expected RPS: {{rps}}\n\nOutput: SAM template, Lambda code, buildspec.yml, and deployment guide.",
+            "variables": [
+                {"name": "api_description", "description": "Description of API endpoints", "default_value": "CRUD API for tasks"},
+                {"name": "auth_type", "description": "Cognito, API Key, or IAM", "default_value": "Cognito"},
+                {"name": "rps", "description": "Requests per second", "default_value": "100"},
+            ],
+            "tags": ["aws", "serverless", "lambda", "sam"],
+            "category": "serverless",
+            "visibility": "public",
+            "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "temperature": 0.5,
+            "max_tokens": 8192,
+            "created_at": now,
+            "updated_at": now,
+            "price": 0.0,
+            "license": "MIT",
+            "downloads": 189,
+            "avg_rating": 4.5,
+            "published_at": now,
+        },
+        {
+            "prompt_id": "demo-prompt-3",
+            "user_id": user_id,
+            "version": 1,
+            "title": "Security Hardening Audit",
+            "description": "Performs a comprehensive AWS security audit and generates prioritized remediation plans with CloudFormation fixes.",
+            "system_prompt": "You are a senior AWS Security Engineer. Analyze configurations and output prioritized findings with exact remediation CLI commands and CloudFormation templates.",
+            "user_prompt": "Perform a security audit on this AWS configuration:\n\n{{config_data}}\n\nCover: IAM, network security, data protection, logging, and incident response.\nOutput: Executive summary, findings table (severity + remediation), and auto-remediation CloudFormation.",
+            "variables": [{"name": "config_data", "description": "AWS Config/Security Hub output or account description", "default_value": ""}],
+            "tags": ["aws", "security", "audit", "compliance"],
+            "category": "security",
+            "visibility": "public",
+            "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+            "temperature": 0.2,
+            "max_tokens": 8192,
+            "created_at": now,
+            "updated_at": now,
+            "price": 0.0,
+            "license": "MIT",
+            "downloads": 312,
+            "avg_rating": 4.8,
+            "published_at": now,
+        },
+    ]
+
+    for p in seed_prompts:
+        _demo_prompts[p["prompt_id"]] = p
+        _demo_marketplace.append(p)
+
+
+if DEMO_MODE:
+    _seed_demo_data()
+
+
+def _demo_mock_invoke(
+    model_id: str,
+    system_prompt: str,
+    user_prompt: str,
+    temperature: float = 0.7,
+    max_tokens: int = 1024,
+) -> dict[str, Any]:
+    """Return a realistic mock response when Bedrock is unavailable."""
+    mock_outputs = [
+        "Based on the analysis, here are the key recommendations:\n\n1. **Right-size EC2 instances** -- 3 instances are running at <10% CPU utilization. Downgrade from m5.xlarge to m5.large. Savings: $420/month.\n   ```bash\n   aws ec2 modify-instance-attribute --instance-id i-0abc123 --instance-type m5.large\n   ```\n\n2. **Enable S3 Intelligent-Tiering** -- 2.3TB of data has not been accessed in 90+ days.\n   ```bash\n   aws s3api put-bucket-lifecycle-configuration --bucket my-bucket --lifecycle-configuration file://lifecycle.json\n   ```\n\n3. **Purchase Savings Plans** -- Stable baseline of 8 instances qualifies for 1-year No Upfront Compute Savings Plan. Savings: 36%.\n\n**Projected annual savings: $18,240**",
+        "## Security Audit Report\n\n### Executive Summary\n2 CRITICAL and 3 HIGH severity findings detected. Immediate action required on root account MFA and public S3 bucket.\n\n| Severity | Finding | Resource | Remediation |\n|----------|---------|----------|-----------|\n| CRITICAL | Root account lacks MFA | Account root | `aws iam create-virtual-mfa-device --virtual-mfa-device-name root-mfa` |\n| CRITICAL | S3 bucket publicly accessible | my-data-bucket | `aws s3api put-public-access-block --bucket my-data-bucket --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true` |\n| HIGH | CloudTrail not enabled in eu-west-1 | CloudTrail | `aws cloudtrail create-trail --name org-trail --s3-bucket-name trail-logs --is-multi-region-trail` |",
+        "# SAM Template - Tasks API\n\n```yaml\nAWSTemplateFormatVersion: '2010-09-09'\nTransform: AWS::Serverless-2016-10-31\nGlobals:\n  Function:\n    Runtime: python3.12\n    Timeout: 30\n    Tracing: Active\n    Environment:\n      Variables:\n        TABLE_NAME: !Ref TasksTable\n\nResources:\n  TasksApi:\n    Type: AWS::Serverless::Api\n    Properties:\n      StageName: prod\n      Auth:\n        DefaultAuthorizer: CognitoAuthorizer\n\n  CreateTaskFunction:\n    Type: AWS::Serverless::Function\n    Properties:\n      Handler: handlers.create_task\n      Events:\n        Api:\n          Type: Api\n          Properties:\n            Path: /tasks\n            Method: POST\n```",
+    ]
+
+    simulated_input_tokens = random.randint(200, 800)
+    simulated_output_tokens = random.randint(300, 1200)
+    simulated_latency = random.uniform(800, 3500)
+    model_info = SUPPORTED_MODELS.get(model_id, list(SUPPORTED_MODELS.values())[0])
+    cost = (
+        simulated_input_tokens / 1000 * model_info.get("input_cost_per_1k", 0.003)
+        + simulated_output_tokens / 1000 * model_info.get("output_cost_per_1k", 0.015)
+    )
+
+    return {
+        "output": random.choice(mock_outputs),
+        "input_tokens": simulated_input_tokens,
+        "output_tokens": simulated_output_tokens,
+        "latency_ms": round(simulated_latency, 2),
+        "cost_estimate": round(cost, 6),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
 # Bedrock invocation helpers
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -290,6 +481,8 @@ def _invoke_model(
     max_tokens: int = 1024,
 ) -> dict[str, Any]:
     """Call a Bedrock model and return output + usage metrics."""
+    if DEMO_MODE:
+        return _demo_mock_invoke(model_id, system_prompt, user_prompt, temperature, max_tokens)
     client = get_bedrock_runtime_client()
     model_info = SUPPORTED_MODELS.get(model_id)
     if not model_info:
@@ -477,6 +670,11 @@ async def get_prompt(
     version: int | None = None,
     user_id: str = Depends(get_current_user),
 ):
+    if DEMO_MODE:
+        p = _demo_prompts.get(prompt_id)
+        if not p:
+            raise HTTPException(status_code=404, detail="Prompt not found")
+        return p
     table = get_table("prompts")
     if version:
         resp = table.query(
@@ -516,6 +714,13 @@ async def list_prompts(
     category: str | None = None,
     tag: str | None = None,
 ):
+    if DEMO_MODE:
+        results = list(_demo_prompts.values())
+        if category:
+            results = [p for p in results if p.get("category") == category]
+        if tag:
+            results = [p for p in results if tag in p.get("tags", [])]
+        return results[:limit]
     table = get_table("prompts")
     key_expr = "pk = :pk AND begins_with(sk, :prefix)"
     expr_values: dict[str, Any] = {
@@ -668,6 +873,30 @@ async def evaluate_prompt(
     model_ids = body.model_ids or [prompt["model_id"]]
 
     results: list[EvalResult] = []
+
+    if DEMO_MODE:
+        for model_id in model_ids:
+            for test_input in body.test_inputs:
+                for run_idx in range(body.num_runs):
+                    resp = _demo_mock_invoke(
+                        model_id=model_id,
+                        system_prompt=prompt.get("system_prompt", ""),
+                        user_prompt=prompt.get("user_prompt", ""),
+                    )
+                    results.append(EvalResult(
+                        eval_id=_new_id(),
+                        prompt_id=body.prompt_id,
+                        model_id=model_id,
+                        input_variables=test_input,
+                        output=resp["output"],
+                        input_tokens=resp["input_tokens"],
+                        output_tokens=resp["output_tokens"],
+                        latency_ms=resp["latency_ms"],
+                        cost_estimate=resp["cost_estimate"],
+                        run_index=run_idx,
+                    ))
+        return results
+
     eval_table = get_table("evaluations")
     analytics_table = get_table("analytics")
 
@@ -964,6 +1193,26 @@ async def browse_marketplace(
     cursor: str | None = None,
 ):
     """Browse public marketplace prompts."""
+    if DEMO_MODE:
+        results = _demo_marketplace
+        if category:
+            results = [p for p in results if p.get("category") == category]
+        return [
+            MarketplaceEntry(
+                prompt_id=p["prompt_id"],
+                user_id=p["user_id"],
+                title=p["title"],
+                description=p["description"],
+                category=p["category"],
+                tags=p.get("tags", []),
+                price=p.get("price", 0.0),
+                license=p.get("license", "MIT"),
+                downloads=p.get("downloads", 0),
+                avg_rating=p.get("avg_rating", 0.0),
+                published_at=p.get("published_at", p.get("created_at", "")),
+            )
+            for p in results[:limit]
+        ]
     table = get_table("prompts")
     key_expr = "gsi2pk = :mpk"
     expr_values: dict[str, Any] = {":mpk": "MARKETPLACE"}
