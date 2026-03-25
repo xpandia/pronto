@@ -851,11 +851,19 @@
       pronto
     </a>
     <ul class="nav-links" id="navLinks">
-      <li><a href="#problem">Problem</a></li>
-      <li><a href="#how-it-works">How It Works</a></li>
-      <li><a href="#features">Features</a></li>
-      <li><a href="#stack">Stack</a></li>
-      <li><a href="#cta" class="nav-cta">Get Early Access</a></li>
+      <li><a href="#problem" data-i18n="nav_problem">Problem</a></li>
+      <li><a href="#how-it-works" data-i18n="nav_how">How It Works</a></li>
+      <li><a href="#features" data-i18n="nav_features">Features</a></li>
+      <li><a href="#stack" data-i18n="nav_stack">Stack</a></li>
+      <li><a href="#cta" class="nav-cta" data-i18n="nav_cta">Get Early Access</a></li>
+      <li style="position:relative;">
+        <button onclick="event.stopPropagation();var d=document.getElementById('pLangDD');d.style.display=d.style.display==='block'?'none':'block';" style="background:transparent;border:1px solid var(--border);color:var(--text-secondary);padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:var(--font-sans);">&#127760; <span id="pLangLabel">English</span></button>
+        <div id="pLangDD" style="position:absolute;top:calc(100%+8px);right:0;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;display:none;z-index:1001;min-width:170px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5);">
+          <div class="p-lang-opt" onclick="setPLang('en')" style="padding:10px 16px;cursor:pointer;font-size:13px;color:var(--text);font-weight:600;">&#127468;&#127463; English</div>
+          <div class="p-lang-opt" onclick="setPLang('es')" style="padding:10px 16px;cursor:pointer;font-size:13px;color:var(--text-secondary);">&#127466;&#127480; Espa&#241;ol</div>
+          <div class="p-lang-opt" onclick="setPLang('pt')" style="padding:10px 16px;cursor:pointer;font-size:13px;color:var(--text-secondary);">&#127463;&#127479; Portugu&#234;s</div>
+        </div>
+      </li>
     </ul>
     <button class="nav-mobile-toggle" id="mobileToggle" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -871,20 +879,20 @@
         <span class="dot"></span>
         AWS Prompt the Planet Hackathon
       </div>
-      <h1 class="hero-title reveal reveal-delay-1">
+      <h1 class="hero-title reveal reveal-delay-1" data-i18n="hero_title">
         Ship better prompts.<br>
         <span class="gradient-text">Ship better AI.</span>
       </h1>
-      <p class="hero-subtitle reveal reveal-delay-2">
+      <p class="hero-subtitle reveal reveal-delay-2" data-i18n="hero_subtitle">
         The prompt engineering platform for developers. Write, test, optimize, and deploy production-grade prompts with the same rigor you ship code.
       </p>
       <div class="hero-actions reveal reveal-delay-3">
         <a href="#cta" class="btn-primary">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          Start Building
+          <span data-i18n="hero_cta">Start Building</span>
         </a>
         <a href="#how-it-works" class="btn-secondary">
-          See How It Works
+          <span data-i18n="hero_secondary">See How It Works</span>
           <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg>
         </a>
       </div>
@@ -912,8 +920,8 @@
   <!-- PROBLEM -->
   <section class="problem-section" id="problem">
     <div class="section-container">
-      <div class="section-label reveal">The Problem</div>
-      <h2 class="section-title reveal">Prompts are the new code.<br>But we treat them like sticky notes.</h2>
+      <div class="section-label reveal" data-i18n="problem_label">The Problem</div>
+      <h2 class="section-title reveal" data-i18n="problem_title">Prompts are the new code.<br>But we treat them like sticky notes.</h2>
       <p class="section-desc reveal">Every team building with LLMs hits the same wall. Prompt development is unstructured, untested, and impossible to collaborate on.</p>
 
       <div class="problem-grid">
@@ -967,8 +975,8 @@
   <!-- HOW IT WORKS -->
   <section class="solution-section" id="how-it-works">
     <div class="section-container">
-      <div class="section-label reveal">How It Works</div>
-      <h2 class="section-title reveal">Three steps from draft to production.</h2>
+      <div class="section-label reveal" data-i18n="how_label">How It Works</div>
+      <h2 class="section-title reveal" data-i18n="how_title">Three steps from draft to production.</h2>
       <p class="section-desc reveal">Pronto gives you a complete workflow for prompt development. No more guessing.</p>
 
       <div class="steps-grid">
@@ -1093,8 +1101,8 @@
   <section class="cta-section" id="cta">
     <div class="cta-bg-glow"></div>
     <div class="section-container" style="position:relative;z-index:2;">
-      <div class="section-label reveal">Get Started</div>
-      <h2 class="section-title reveal">Stop guessing.<br>Start engineering.</h2>
+      <div class="section-label reveal" data-i18n="cta_label">Get Started</div>
+      <h2 class="section-title reveal" data-i18n="cta_title">Stop guessing.<br>Start engineering.</h2>
       <p class="section-desc reveal" style="margin-left:auto;margin-right:auto;">
         Join the developers who treat prompts like production code. Pronto is your IDE for the age of AI.
       </p>
@@ -1121,6 +1129,49 @@
   </footer>
 
   <script>
+    // ---- i18n SYSTEM ----
+    const pi18n = {
+      en: {
+        nav_problem:'Problem',nav_how:'How It Works',nav_features:'Features',nav_stack:'Stack',nav_cta:'Get Early Access',
+        hero_title:'Ship better prompts.<br><span class="gradient-text">Ship better AI.</span>',
+        hero_subtitle:'The prompt engineering platform for developers. Write, test, optimize, and deploy production-grade prompts with the same rigor you ship code.',
+        hero_cta:'Start Building',hero_secondary:'See How It Works',
+        problem_label:'The Problem',problem_title:'Prompts are the new code.<br>But we treat them like sticky notes.',
+        how_label:'How It Works',how_title:'Three steps from draft to production.',
+        cta_label:'Get Started',cta_title:'Stop guessing.<br>Start engineering.'
+      },
+      es: {
+        nav_problem:'Problema',nav_how:'C\u00f3mo Funciona',nav_features:'Caracter\u00edsticas',nav_stack:'Tecnolog\u00eda',nav_cta:'Acceso Anticipado',
+        hero_title:'Env\u00eda mejores prompts.<br><span class="gradient-text">Env\u00eda mejor IA.</span>',
+        hero_subtitle:'La plataforma de ingenier\u00eda de prompts para desarrolladores. Escribe, prueba, optimiza y despliega prompts de producci\u00f3n con el mismo rigor con que env\u00edas c\u00f3digo.',
+        hero_cta:'Empieza a Construir',hero_secondary:'Ver C\u00f3mo Funciona',
+        problem_label:'El Problema',problem_title:'Los prompts son el nuevo c\u00f3digo.<br>Pero los tratamos como notas adhesivas.',
+        how_label:'C\u00f3mo Funciona',how_title:'Tres pasos del borrador a producci\u00f3n.',
+        cta_label:'Comienza',cta_title:'Deja de adivinar.<br>Empieza a ingeniar.'
+      },
+      pt: {
+        nav_problem:'Problema',nav_how:'Como Funciona',nav_features:'Recursos',nav_stack:'Tecnologia',nav_cta:'Acesso Antecipado',
+        hero_title:'Envie melhores prompts.<br><span class="gradient-text">Envie melhor IA.</span>',
+        hero_subtitle:'A plataforma de engenharia de prompts para desenvolvedores. Escreva, teste, otimize e implante prompts de produ\u00e7\u00e3o com o mesmo rigor com que voc\u00ea envia c\u00f3digo.',
+        hero_cta:'Comece a Construir',hero_secondary:'Veja Como Funciona',
+        problem_label:'O Problema',problem_title:'Prompts s\u00e3o o novo c\u00f3digo.<br>Mas os tratamos como post-its.',
+        how_label:'Como Funciona',how_title:'Tr\u00eas passos do rascunho \u00e0 produ\u00e7\u00e3o.',
+        cta_label:'Comece Agora',cta_title:'Pare de adivinhar.<br>Comece a engenheirar.'
+      }
+    };
+    let pLang = localStorage.getItem('pronto-lang') || 'en';
+    function setPLang(lang) {
+      pLang = lang; localStorage.setItem('pronto-lang', lang);
+      document.documentElement.lang = lang;
+      const s = pi18n[lang]; if(!s) return;
+      document.querySelectorAll('[data-i18n]').forEach(el => { const k=el.getAttribute('data-i18n'); if(s[k]) el.innerHTML=s[k]; });
+      document.querySelectorAll('.p-lang-opt').forEach(o => { o.style.fontWeight = o.getAttribute('onclick').includes("'"+lang+"'") ? '600' : '400'; o.style.color = o.getAttribute('onclick').includes("'"+lang+"'") ? 'var(--purple-light)' : 'var(--text-secondary)'; });
+      document.getElementById('pLangLabel').textContent = {en:'English',es:'Espa\u00f1ol',pt:'Portugu\u00eas'}[lang]||lang;
+      document.getElementById('pLangDD').style.display='none';
+    }
+    document.addEventListener('click',()=>{const d=document.getElementById('pLangDD');if(d)d.style.display='none';});
+    if(pLang!=='en') setPLang(pLang);
+
     // ---- SCROLL REVEAL ----
     const revealElements = document.querySelectorAll('.reveal');
     const revealObserver = new IntersectionObserver((entries) => {

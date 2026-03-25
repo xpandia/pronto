@@ -448,6 +448,14 @@ input:focus,textarea:focus,select:focus{border-color:var(--purple)}
         <div class="user-email" id="user-email-display">-</div>
       </div>
     </div>
+    <div style="padding:8px 16px;border-top:1px solid var(--border);position:relative;">
+      <button onclick="event.stopPropagation();var d=document.getElementById('paLangDD');d.style.display=d.style.display==='block'?'none':'block';" style="background:var(--bg-3);border:1px solid var(--border);color:var(--text-2);padding:5px 10px;border-radius:var(--radius);font-size:11px;cursor:pointer;width:100%;text-align:left;display:flex;align-items:center;gap:4px;font-family:var(--font-sans);">&#127760; <span id="paLangLabel">English</span></button>
+      <div id="paLangDD" style="position:absolute;bottom:calc(100%+4px);left:8px;right:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);display:none;z-index:200;overflow:hidden;">
+        <div onclick="setPaLang('en')" style="padding:8px 12px;cursor:pointer;font-size:11px;color:var(--text-0);font-weight:600;">&#127468;&#127463; English</div>
+        <div onclick="setPaLang('es')" style="padding:8px 12px;cursor:pointer;font-size:11px;color:var(--text-2);">&#127466;&#127480; Espa&#241;ol</div>
+        <div onclick="setPaLang('pt')" style="padding:8px 12px;cursor:pointer;font-size:11px;color:var(--text-2);">&#127463;&#127479; Portugu&#234;s</div>
+      </div>
+    </div>
   </aside>
 
   <!-- Main content -->
@@ -740,6 +748,17 @@ For each finding, provide:
 </div>
 
 <script>
+/* ═══════════════════════════════════════════════════════════════════════
+   i18n
+   ═══════════════════════════════════════════════════════════════════════ */
+let paLang = localStorage.getItem('pronto-app-lang') || 'en';
+function setPaLang(lang) {
+  paLang = lang; localStorage.setItem('pronto-app-lang', lang);
+  document.getElementById('paLangLabel').textContent = {en:'English',es:'Espa\u00f1ol',pt:'Portugu\u00eas'}[lang]||lang;
+  const dd = document.getElementById('paLangDD'); if(dd) dd.style.display='none';
+}
+document.addEventListener('click',()=>{const d=document.getElementById('paLangDD');if(d)d.style.display='none';});
+
 /* ═══════════════════════════════════════════════════════════════════════
    STATE
    ═══════════════════════════════════════════════════════════════════════ */
