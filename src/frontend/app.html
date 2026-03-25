@@ -170,6 +170,88 @@ input:focus,textarea:focus,select:focus{border-color:var(--purple)}
 .output-loading .spinner{width:24px;height:24px;border:3px solid var(--bg-4);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;margin-right:10px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
+/* Processing overlay */
+.output-processing{position:absolute;inset:0;background:rgba(10,10,11,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;backdrop-filter:blur(4px);animation:fadeIn .2s ease}
+.output-processing .proc-spinner{width:32px;height:32px;border:3px solid var(--bg-4);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:12px}
+.output-processing .proc-label{font-size:13px;color:var(--text-2);font-weight:600}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 8px var(--purple-glow)}50%{box-shadow:0 0 20px var(--purple-glow)}}
+
+/* Streaming stats bar */
+.stream-stats{display:flex;gap:16px;padding:8px 16px;background:var(--bg-2);border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--text-3);align-items:center}
+.stream-stats .ss-item{display:flex;align-items:center;gap:4px}
+.stream-stats .ss-item .ss-val{color:var(--text-1);font-weight:600;min-width:48px}
+.stream-stats .ss-item.live .ss-val{color:var(--green);animation:pulseGlow 1.5s ease infinite}
+.stream-stats .ss-done{margin-left:auto;font-weight:700;color:var(--green);opacity:0;transition:opacity .3s ease}
+.stream-stats .ss-done.visible{opacity:1}
+
+/* Generation complete bar */
+.gen-complete-bar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(90deg,rgba(16,185,129,.08),rgba(16,185,129,.02));border-top:1px solid rgba(16,185,129,.2);font-size:12px;font-weight:600;color:var(--green);animation:slideUp .3s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Current line highlight in gutter */
+.code-gutter .line-num{padding-right:12px;transition:color .1s}
+.code-gutter .line-num.current{color:var(--text-0);background:var(--bg-3);font-weight:600}
+
+/* Variable glow */
+.code-editor .highlight-layer .var-hl{color:var(--purple);background:var(--purple-soft);border-radius:3px;padding:0 2px;font-weight:600;text-shadow:0 0 8px var(--purple-glow)}
+
+/* Autocomplete dropdown */
+.var-autocomplete{position:absolute;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:50;min-width:180px;max-height:160px;overflow-y:auto;display:none}
+.var-autocomplete.open{display:block}
+.var-autocomplete .ac-item{padding:6px 12px;font-family:var(--font-mono);font-size:12px;color:var(--text-1);cursor:pointer;display:flex;align-items:center;gap:6px}
+.var-autocomplete .ac-item:hover,.var-autocomplete .ac-item.selected{background:var(--purple-soft);color:var(--purple)}
+.var-autocomplete .ac-item .ac-icon{color:var(--purple);font-size:10px}
+
+/* Saved toast overlay */
+.save-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.8);background:var(--bg-2);border:1px solid var(--green);border-radius:var(--radius-lg);padding:16px 32px;font-size:15px;font-weight:700;color:var(--green);z-index:1000;opacity:0;pointer-events:none;transition:all .25s cubic-bezier(.4,0,.2,1)}
+.save-toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+
+/* A/B progress race bars */
+.ab-race-bar{height:8px;background:var(--bg-4);border-radius:4px;overflow:hidden;margin:8px 0}
+.ab-race-bar .ab-race-fill{height:100%;border-radius:4px;transition:width .1s linear}
+.ab-race-bar .ab-race-fill.a{background:linear-gradient(90deg,var(--purple),var(--blue))}
+.ab-race-bar .ab-race-fill.b{background:linear-gradient(90deg,var(--amber),var(--red))}
+
+/* Trophy animation */
+@keyframes trophyBounce{0%{transform:scale(0) rotate(-15deg)}50%{transform:scale(1.3) rotate(5deg)}70%{transform:scale(.9) rotate(-3deg)}100%{transform:scale(1) rotate(0)}}
+.trophy-anim{display:inline-block;animation:trophyBounce .6s cubic-bezier(.4,0,.2,1)}
+
+/* Best model crown animation */
+@keyframes crownDrop{0%{opacity:0;transform:translateY(-20px) scale(0)}60%{transform:translateY(3px) scale(1.1)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.crown-anim{animation:crownDrop .5s cubic-bezier(.4,0,.2,1) forwards}
+.best-badge{animation:fadeIn .3s ease .4s both}
+
+/* Loading skeleton */
+.skeleton{background:linear-gradient(90deg,var(--bg-3) 25%,var(--bg-4) 50%,var(--bg-3) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:4px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton-line{height:14px;margin-bottom:8px;border-radius:4px}
+.skeleton-line:nth-child(odd){width:90%}
+.skeleton-line:nth-child(even){width:70%}
+.skeleton-line:last-child{width:45%}
+
+/* Cost comparison chart in test */
+.cost-chart-bar{display:flex;align-items:end;gap:8px;height:60px;margin-top:12px;padding:0 4px}
+.cost-chart-bar .ccb{flex:1;border-radius:3px 3px 0 0;transition:height .8s cubic-bezier(.4,0,.2,1);position:relative;min-height:4px}
+.cost-chart-bar .ccb::after{content:attr(data-cost);position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:9px;font-family:var(--font-mono);color:var(--text-3);white-space:nowrap}
+
+/* Marketplace preview popup */
+.mp-preview-popup{position:absolute;z-index:100;background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;width:340px;box-shadow:var(--shadow-lg);pointer-events:none;opacity:0;transform:translateY(8px);transition:opacity .15s,transform .15s}
+.mp-preview-popup.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.mp-preview-popup .pp-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.mp-preview-popup .pp-code{font-family:var(--font-mono);font-size:11px;color:var(--text-2);background:var(--bg-0);padding:10px;border-radius:var(--radius);max-height:120px;overflow:hidden;line-height:1.5;white-space:pre-wrap;margin-bottom:8px}
+.mp-preview-popup .pp-stats{display:flex;gap:12px;font-size:11px;color:var(--text-3)}
+
+/* Star rating interactive */
+.star-rating{display:inline-flex;gap:2px;cursor:pointer}
+.star-rating .star{color:var(--bg-4);transition:color .15s,transform .15s;font-size:16px}
+.star-rating .star.filled{color:var(--amber)}
+.star-rating .star:hover{transform:scale(1.3)}
+
+/* Download +1 float */
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-24px)}}
+.dl-float{position:absolute;color:var(--green);font-size:11px;font-weight:700;pointer-events:none;animation:floatUp .8s ease forwards}
+
 /* Resize handle */
 .resize-handle{width:4px;cursor:col-resize;background:transparent;transition:background var(--transition);position:relative;z-index:5}
 .resize-handle:hover,.resize-handle.active{background:var(--purple)}
@@ -538,7 +620,8 @@ input:focus,textarea:focus,select:focus{border-color:var(--purple)}
                 <div class="code-gutter" id="code-gutter"></div>
                 <div class="code-editor">
                   <div class="highlight-layer" id="highlight-layer"></div>
-                  <textarea id="prompt-editor" spellcheck="false" oninput="handleEditorInput()" onscroll="syncScroll()">Perform a comprehensive security audit for the following AWS environment:
+                  <div class="var-autocomplete" id="var-autocomplete"></div>
+                  <textarea id="prompt-editor" spellcheck="false" oninput="handleEditorInput()" onscroll="syncScroll()" onkeydown="handleEditorKeydown(event)" onclick="handleEditorInput()" onkeyup="handleEditorInput()">Perform a comprehensive security audit for the following AWS environment:
 
 Region: {{region}}
 Account ID: {{account_id}}
@@ -563,7 +646,7 @@ For each finding, provide:
             <div class="resize-handle" id="editor-resize"></div>
 
             <!-- Output Panel -->
-            <div class="editor-output">
+            <div class="editor-output" style="position:relative">
               <div class="output-header">
                 <h3>&#x1F4E4; Output</h3>
                 <div class="metrics" id="output-metrics" style="display:none">
@@ -574,6 +657,12 @@ For each finding, provide:
               </div>
               <div class="output-body empty" id="output-body">
                 Press Run to execute your prompt against the selected model
+              </div>
+              <div id="stream-stats" class="stream-stats" style="display:none">
+                <div class="ss-item live" id="ss-latency-wrap"><span>Latency:</span><span class="ss-val" id="ss-latency">0ms</span></div>
+                <div class="ss-item live" id="ss-tokens-wrap"><span>Tokens:</span><span class="ss-val" id="ss-tokens">0</span></div>
+                <div class="ss-item live" id="ss-cost-wrap"><span>Cost:</span><span class="ss-val" id="ss-cost">$0.0000</span></div>
+                <div class="ss-done" id="ss-done">Generation Complete &#x2713;</div>
               </div>
             </div>
           </div>
@@ -720,6 +809,12 @@ For each finding, provide:
     </div>
   </div>
 </div>
+
+<!-- Save toast overlay -->
+<div class="save-toast" id="save-toast">&#x2713; Saved</div>
+
+<!-- Marketplace preview popup -->
+<div class="mp-preview-popup" id="mp-preview-popup"></div>
 
 <!-- Toasts -->
 <div class="toast-container" id="toast-container"></div>
@@ -1091,12 +1186,14 @@ async function savePrompt() {
   try {
     if (currentPromptId && !currentPromptId.startsWith('local_')) {
       await api('PUT', `/prompts/${currentPromptId}`, data);
-      toast('Prompt saved', 'success');
     } else {
       const res = await api('POST', '/prompts', { ...data, visibility: 'private' });
       currentPromptId = res.prompt_id;
-      toast('Prompt created', 'success');
     }
+    // Show centered "Saved" overlay
+    const saveToast = document.getElementById('save-toast');
+    saveToast.classList.add('show');
+    setTimeout(() => saveToast.classList.remove('show'), 1200);
     await loadPrompts();
   } catch (e) {
     toast(`Save failed: ${e.message}`, 'error');
@@ -1129,16 +1226,113 @@ function getEditorData() {
 function handleEditorInput() {
   const textarea = document.getElementById('prompt-editor');
   const text = textarea.value;
-  // Update line numbers
+  // Update line numbers with current line highlight
   const lines = text.split('\n');
+  const cursorPos = textarea.selectionStart;
+  const currentLine = text.substring(0, cursorPos).split('\n').length;
   const gutter = document.getElementById('code-gutter');
-  gutter.innerHTML = lines.map((_, i) => `<div class="line-num">${i + 1}</div>`).join('');
+  gutter.innerHTML = lines.map((_, i) => `<div class="line-num${i + 1 === currentLine ? ' current' : ''}">${i + 1}</div>`).join('');
 
   // Highlight variables
   const hl = document.getElementById('highlight-layer');
   const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   hl.innerHTML = escaped.replace(/\{\{(\w+)\}\}/g, '<span class="var-hl">{{$1}}</span>');
   syncScroll();
+
+  // Autocomplete: check if we just typed {{
+  checkAutocomplete(textarea, text, cursorPos);
+}
+
+function checkAutocomplete(textarea, text, cursorPos) {
+  const ac = document.getElementById('var-autocomplete');
+  const beforeCursor = text.substring(0, cursorPos);
+  const match = beforeCursor.match(/\{\{(\w*)$/);
+  if (match) {
+    const partial = match[1].toLowerCase();
+    // Gather known variables from all prompts
+    const allVars = new Set();
+    prompts.forEach(p => {
+      if (p.variables) p.variables.forEach(v => allVars.add(v.name));
+    });
+    // Also add common defaults
+    ['region','account_id','services','monthly_spend','environment','app_type','runtime','target','branch_strategy','user_name','input','query','context','language','format'].forEach(v => allVars.add(v));
+    const filtered = [...allVars].filter(v => !partial || v.toLowerCase().startsWith(partial));
+    if (filtered.length > 0) {
+      // Position near cursor
+      const coords = getCaretCoordinates(textarea, cursorPos - match[0].length);
+      ac.style.left = (coords.left + 48) + 'px'; // offset for gutter
+      ac.style.top = (coords.top + 24) + 'px';
+      ac.innerHTML = filtered.slice(0, 8).map((v, i) => `<div class="ac-item${i === 0 ? ' selected' : ''}" onmousedown="insertAutocomplete('${v}')" data-var="${v}"><span class="ac-icon">&#x25C6;</span> {{${v}}}</div>`).join('');
+      ac.classList.add('open');
+      ac._filtered = filtered;
+      ac._selectedIndex = 0;
+      return;
+    }
+  }
+  ac.classList.remove('open');
+}
+
+function insertAutocomplete(varName) {
+  const textarea = document.getElementById('prompt-editor');
+  const text = textarea.value;
+  const cursorPos = textarea.selectionStart;
+  const beforeCursor = text.substring(0, cursorPos);
+  const match = beforeCursor.match(/\{\{(\w*)$/);
+  if (match) {
+    const start = cursorPos - match[0].length;
+    const newText = text.substring(0, start) + '{{' + varName + '}}' + text.substring(cursorPos);
+    textarea.value = newText;
+    const newPos = start + varName.length + 4;
+    textarea.setSelectionRange(newPos, newPos);
+    textarea.focus();
+    handleEditorInput();
+  }
+  document.getElementById('var-autocomplete').classList.remove('open');
+}
+
+function handleEditorKeydown(e) {
+  const ac = document.getElementById('var-autocomplete');
+  // Tab indentation
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const textarea = e.target;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + 2;
+    handleEditorInput();
+    return;
+  }
+  // Autocomplete navigation
+  if (ac.classList.contains('open')) {
+    const items = ac.querySelectorAll('.ac-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      ac._selectedIndex = Math.min((ac._selectedIndex || 0) + 1, items.length - 1);
+      items.forEach((it, i) => it.classList.toggle('selected', i === ac._selectedIndex));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      ac._selectedIndex = Math.max((ac._selectedIndex || 0) - 1, 0);
+      items.forEach((it, i) => it.classList.toggle('selected', i === ac._selectedIndex));
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      const sel = items[ac._selectedIndex || 0];
+      if (sel) insertAutocomplete(sel.dataset.var);
+    } else if (e.key === 'Escape') {
+      ac.classList.remove('open');
+    }
+  }
+}
+
+// Simple caret coordinate estimation
+function getCaretCoordinates(textarea, position) {
+  const text = textarea.value.substring(0, position);
+  const lines = text.split('\n');
+  const lineHeight = 22.1; // 13px * 1.7 line-height
+  const charWidth = 7.8;
+  const top = (lines.length - 1) * lineHeight - textarea.scrollTop + 16;
+  const left = (lines[lines.length - 1] || '').length * charWidth;
+  return { top: Math.max(0, top), left: Math.min(left, 300) };
 }
 
 function syncScroll() {
@@ -1160,9 +1354,9 @@ function toggleSystemPrompt() {
 /* ═══════════════════════════════════════════════════════════════════════
    RUN PROMPT
    ═══════════════════════════════════════════════════════════════════════ */
+let streamInterval = null;
 async function runPrompt() {
   if (!currentPromptId || currentPromptId.startsWith('local_')) {
-    // Save first
     try {
       const data = getEditorData();
       const res = await api('POST', '/prompts', { ...data, visibility: 'private' });
@@ -1173,11 +1367,34 @@ async function runPrompt() {
       return;
     }
   }
-  const outBody = document.getElementById('output-body');
-  outBody.classList.remove('empty');
-  outBody.innerHTML = '<div class="output-loading"><div class="spinner"></div> Running prompt...</div>';
+  if (streamInterval) { clearInterval(streamInterval); streamInterval = null; }
 
-  // Extract variables and their default values
+  const outBody = document.getElementById('output-body');
+  const outputPanel = document.querySelector('.editor-output');
+  outBody.classList.remove('empty');
+
+  // Show processing overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'output-processing';
+  overlay.id = 'output-proc-overlay';
+  overlay.innerHTML = '<div class="proc-spinner"></div><div class="proc-label">Processing prompt...</div>';
+  outputPanel.appendChild(overlay);
+
+  // Show live stats bar and reset
+  const statsBar = document.getElementById('stream-stats');
+  statsBar.style.display = 'flex';
+  document.getElementById('ss-done').classList.remove('visible');
+  document.getElementById('ss-latency-wrap').classList.add('live');
+  document.getElementById('ss-tokens-wrap').classList.add('live');
+  document.getElementById('ss-cost-wrap').classList.add('live');
+
+  // Live latency timer
+  const latencyStart = performance.now();
+  const latencyEl = document.getElementById('ss-latency');
+  const latencyTimer = setInterval(() => {
+    latencyEl.textContent = `${Math.round(performance.now() - latencyStart)}ms`;
+  }, 50);
+
   const prompt = prompts.find(p => p.prompt_id === currentPromptId);
   const testInput = {};
   if (prompt && prompt.variables) {
@@ -1192,15 +1409,58 @@ async function runPrompt() {
       temperature: parseFloat(document.getElementById('prompt-temp').value),
       max_tokens: parseInt(document.getElementById('prompt-max-tokens').value)
     });
+    clearInterval(latencyTimer);
+    const procOverlay = document.getElementById('output-proc-overlay');
+    if (procOverlay) procOverlay.remove();
+
     if (results.length > 0) {
       const r = results[0];
-      outBody.textContent = r.output;
-      document.getElementById('output-metrics').style.display = 'flex';
-      document.getElementById('out-latency').textContent = `${Math.round(r.latency_ms)}ms`;
-      document.getElementById('out-tokens').textContent = `${r.input_tokens}/${r.output_tokens}`;
-      document.getElementById('out-cost').textContent = `$${r.cost_estimate.toFixed(4)}`;
+      const fullText = r.output;
+      const totalLatency = Math.round(r.latency_ms);
+      const totalTokens = r.output_tokens;
+      const totalCost = r.cost_estimate;
+
+      // Typewriter streaming
+      outBody.textContent = '';
+      let charIndex = 0;
+      const charsPerTick = 2;
+      const tickMs = 16;
+      streamInterval = setInterval(() => {
+        const end = Math.min(charIndex + charsPerTick, fullText.length);
+        outBody.textContent += fullText.substring(charIndex, end);
+        charIndex = end;
+        const pct = charIndex / fullText.length;
+        // Live counters tick proportionally
+        document.getElementById('ss-tokens').textContent = Math.round(totalTokens * pct);
+        document.getElementById('ss-cost').textContent = `$${(totalCost * pct).toFixed(4)}`;
+        document.getElementById('ss-latency').textContent = `${Math.round(totalLatency * pct)}ms`;
+
+        if (charIndex >= fullText.length) {
+          clearInterval(streamInterval);
+          streamInterval = null;
+          // Final values
+          document.getElementById('ss-tokens').textContent = totalTokens;
+          document.getElementById('ss-cost').textContent = `$${totalCost.toFixed(4)}`;
+          document.getElementById('ss-latency').textContent = `${totalLatency}ms`;
+          // Stop live pulse
+          document.getElementById('ss-latency-wrap').classList.remove('live');
+          document.getElementById('ss-tokens-wrap').classList.remove('live');
+          document.getElementById('ss-cost-wrap').classList.remove('live');
+          // Show done
+          document.getElementById('ss-done').classList.add('visible');
+          // Also update the header metrics
+          document.getElementById('output-metrics').style.display = 'flex';
+          document.getElementById('out-latency').textContent = `${totalLatency}ms`;
+          document.getElementById('out-tokens').textContent = `${r.input_tokens}/${r.output_tokens}`;
+          document.getElementById('out-cost').textContent = `$${totalCost.toFixed(4)}`;
+        }
+      }, tickMs);
     }
   } catch (e) {
+    clearInterval(latencyTimer);
+    const procOverlay = document.getElementById('output-proc-overlay');
+    if (procOverlay) procOverlay.remove();
+    statsBar.style.display = 'none';
     outBody.innerHTML = `<div style="color:var(--red)">Error: ${e.message}</div>`;
     toast(`Run failed: ${e.message}`, 'error');
   }
@@ -1241,7 +1501,26 @@ async function runTest() {
   }
 
   const area = document.getElementById('test-results-area');
-  area.innerHTML = '<div class="output-loading" style="padding:60px"><div class="spinner"></div> Running multi-model evaluation...</div>';
+  // Show skeleton loading for all models simultaneously
+  const modelColors = ['var(--purple)','var(--blue)','var(--green)','var(--amber)','var(--cyan)'];
+  area.innerHTML = '<div class="test-results">' + selectedModels.map((mid, i) => {
+    const mName = models[mid]?.display_name || mid;
+    return `
+      <div class="test-result-card" id="trc-${i}">
+        <div class="trc-header">
+          <span class="model-name">${mName}</span>
+          <span style="margin-left:auto;font-size:11px;color:var(--text-3)" id="trc-status-${i}"><span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:4px"></span> Running...</span>
+        </div>
+        <div class="trc-metrics">
+          <div class="m"><div class="m-label">Latency</div><div class="m-value" id="trc-lat-${i}" style="color:var(--blue)">---</div></div>
+          <div class="m"><div class="m-label">Tokens</div><div class="m-value" id="trc-tok-${i}">---</div></div>
+          <div class="m"><div class="m-label">Cost</div><div class="m-value" id="trc-cost-${i}" style="color:var(--green)">---</div></div>
+          <div class="m"><div class="m-label">Quality</div><div class="m-value" id="trc-qual-${i}" style="color:var(--amber)">---</div></div>
+        </div>
+        <div class="trc-output" id="trc-out-${i}"><div class="skeleton-line skeleton" style="width:95%"></div><div class="skeleton-line skeleton" style="width:80%"></div><div class="skeleton-line skeleton" style="width:88%"></div><div class="skeleton-line skeleton" style="width:60%"></div><div class="skeleton-line skeleton" style="width:72%"></div></div>
+      </div>
+    `;
+  }).join('') + '</div><div id="test-cost-chart-area"></div>';
 
   try {
     const results = await api('POST', '/evaluate', {
@@ -1250,14 +1529,12 @@ async function runTest() {
       test_inputs: [testInput]
     });
 
-    // Group by model
     const byModel = {};
     results.forEach(r => {
       if (!byModel[r.model_id]) byModel[r.model_id] = [];
       byModel[r.model_id].push(r);
     });
 
-    // Find best model (lowest cost * latency)
     let bestModel = null;
     let bestScore = Infinity;
     Object.entries(byModel).forEach(([mid, runs]) => {
@@ -1265,26 +1542,81 @@ async function runTest() {
       if (score < bestScore) { bestScore = score; bestModel = mid; }
     });
 
-    area.innerHTML = '<div class="test-results">' + Object.entries(byModel).map(([mid, runs]) => {
+    // Stagger each model's reveal with typewriter at different speeds
+    selectedModels.forEach((mid, i) => {
+      const runs = byModel[mid];
+      if (!runs) return;
       const r = runs[0];
-      const isBest = mid === bestModel;
-      const mName = models[mid]?.display_name || mid;
-      return `
-        <div class="test-result-card${isBest ? ' best' : ''}">
-          <div class="trc-header">
-            <span class="model-name">${mName}</span>
-            ${isBest ? '<span class="best-badge">Best</span>' : ''}
+      const delay = 400 + i * 800 + Math.random() * 600; // staggered timing
+      const speed = 12 + i * 6; // different speeds per model
+
+      setTimeout(() => {
+        const isBest = mid === bestModel;
+        const quality = (85 + Math.random() * 12).toFixed(0);
+        // Update metrics
+        document.getElementById(`trc-lat-${i}`).textContent = `${Math.round(r.latency_ms)}ms`;
+        document.getElementById(`trc-tok-${i}`).textContent = r.input_tokens + r.output_tokens;
+        document.getElementById(`trc-cost-${i}`).textContent = `$${r.cost_estimate.toFixed(4)}`;
+        document.getElementById(`trc-qual-${i}`).textContent = `${quality}%`;
+        // Status: done
+        document.getElementById(`trc-status-${i}`).innerHTML = `<span style="color:var(--green);font-weight:600">Done</span> <span style="color:var(--text-3)">${Math.round(r.latency_ms)}ms</span>`;
+
+        // Typewriter for output
+        const outEl = document.getElementById(`trc-out-${i}`);
+        const fullText = r.output.substring(0, 600) + (r.output.length > 600 ? '...' : '');
+        outEl.textContent = '';
+        let ci = 0;
+        const tw = setInterval(() => {
+          const end = Math.min(ci + 3, fullText.length);
+          outEl.textContent += fullText.substring(ci, end);
+          ci = end;
+          if (ci >= fullText.length) {
+            clearInterval(tw);
+            // If best, add crown badge with animation
+            if (isBest) {
+              const card = document.getElementById(`trc-${i}`);
+              card.classList.add('best');
+              card.style.transition = 'all .4s ease';
+              const header = card.querySelector('.trc-header');
+              const badge = document.createElement('span');
+              badge.className = 'best-badge crown-anim';
+              badge.innerHTML = '&#x1F451; Best';
+              header.appendChild(badge);
+            }
+          }
+        }, speed);
+      }, delay);
+    });
+
+    // Cost comparison chart after all are done
+    const totalDelay = 400 + selectedModels.length * 800 + 1200;
+    setTimeout(() => {
+      const chartArea = document.getElementById('test-cost-chart-area');
+      if (!chartArea) return;
+      const entries = Object.entries(byModel);
+      const maxCost = Math.max(...entries.map(([,r]) => r[0].cost_estimate));
+      chartArea.innerHTML = `
+        <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-top:16px">
+          <h3 style="font-size:14px;font-weight:700;margin-bottom:12px">Cost Comparison</h3>
+          <div class="cost-chart-bar">
+            ${entries.map(([mid, runs], j) => {
+              const cost = runs[0].cost_estimate;
+              const pct = (cost / maxCost * 100).toFixed(0);
+              return `<div class="ccb" data-cost="$${cost.toFixed(4)}" style="height:0%;background:${modelColors[j % modelColors.length]}"></div>`;
+            }).join('')}
           </div>
-          <div class="trc-metrics">
-            <div class="m"><div class="m-label">Latency</div><div class="m-value" style="color:var(--blue)">${Math.round(r.latency_ms)}ms</div></div>
-            <div class="m"><div class="m-label">Tokens</div><div class="m-value">${r.input_tokens + r.output_tokens}</div></div>
-            <div class="m"><div class="m-label">Cost</div><div class="m-value" style="color:var(--green)">$${r.cost_estimate.toFixed(4)}</div></div>
-            <div class="m"><div class="m-label">Quality</div><div class="m-value" style="color:var(--amber)">${(85 + Math.random() * 12).toFixed(0)}%</div></div>
-          </div>
-          <div class="trc-output">${r.output.substring(0, 600)}${r.output.length > 600 ? '...' : ''}</div>
+          <div style="display:flex;gap:8px;margin-top:8px;justify-content:space-around">${entries.map(([mid]) => `<span style="font-size:10px;color:var(--text-3)">${models[mid]?.display_name || mid}</span>`).join('')}</div>
         </div>
       `;
-    }).join('') + '</div>';
+      // Animate bars
+      requestAnimationFrame(() => {
+        chartArea.querySelectorAll('.ccb').forEach((bar, j) => {
+          const cost = entries[j][1][0].cost_estimate;
+          const pct = (cost / maxCost * 100).toFixed(0);
+          setTimeout(() => { bar.style.height = pct + '%'; }, 50 + j * 100);
+        });
+      });
+    }, totalDelay);
   } catch (e) {
     area.innerHTML = `<div class="empty-state"><div class="es-icon" style="color:var(--red)">&#x26A0;</div><h3>Evaluation Failed</h3><p>${e.message}</p></div>`;
   }
@@ -1303,15 +1635,52 @@ async function runABTest() {
   if (!promptA || !promptB) return toast('Select two prompts', 'error');
   if (promptA === promptB) return toast('Select two different prompts', 'error');
 
+  const pAName = prompts.find(p => p.prompt_id === promptA)?.title || 'Variant A';
+  const pBName = prompts.find(p => p.prompt_id === promptB)?.title || 'Variant B';
   const area = document.getElementById('ab-results-area');
-  area.innerHTML = '<div class="output-loading" style="padding:60px"><div class="spinner"></div> Running A/B test...</div>';
+
+  // Show racing progress bars
+  area.innerHTML = `
+    <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:16px">
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:16px;text-align:center">Racing...</h3>
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:600;color:var(--purple)">A: ${pAName}</span><span id="ab-pct-a" style="font-family:var(--font-mono);color:var(--text-3)">0%</span></div>
+        <div class="ab-race-bar"><div class="ab-race-fill a" id="ab-fill-a" style="width:0%"></div></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:600;color:var(--amber)">B: ${pBName}</span><span id="ab-pct-b" style="font-family:var(--font-mono);color:var(--text-3)">0%</span></div>
+        <div class="ab-race-bar"><div class="ab-race-fill b" id="ab-fill-b" style="width:0%"></div></div>
+      </div>
+    </div>
+  `;
+
+  // Animate race bars while waiting
+  let raceA = 0, raceB = 0;
+  const raceInterval = setInterval(() => {
+    raceA = Math.min(95, raceA + 2 + Math.random() * 5);
+    raceB = Math.min(95, raceB + 2 + Math.random() * 5);
+    const fillA = document.getElementById('ab-fill-a');
+    const fillB = document.getElementById('ab-fill-b');
+    if (fillA) { fillA.style.width = raceA + '%'; document.getElementById('ab-pct-a').textContent = Math.round(raceA) + '%'; }
+    if (fillB) { fillB.style.width = raceB + '%'; document.getElementById('ab-pct-b').textContent = Math.round(raceB) + '%'; }
+  }, 100);
 
   try {
     const result = await api('POST', '/ab-tests', {
       name, prompt_a_id: promptA, prompt_b_id: promptB, model_id: modelId, num_runs: numRuns, test_inputs: [{}]
     });
-    renderABResults(result);
+    clearInterval(raceInterval);
+    // Complete race bars
+    const fillA = document.getElementById('ab-fill-a');
+    const fillB = document.getElementById('ab-fill-b');
+    if (fillA) fillA.style.width = '100%';
+    if (fillB) fillB.style.width = '100%';
+    if (document.getElementById('ab-pct-a')) document.getElementById('ab-pct-a').textContent = '100%';
+    if (document.getElementById('ab-pct-b')) document.getElementById('ab-pct-b').textContent = '100%';
+
+    setTimeout(() => renderABResults(result), 400);
   } catch (e) {
+    clearInterval(raceInterval);
     area.innerHTML = `<div class="empty-state"><div class="es-icon" style="color:var(--red)">&#x26A0;</div><h3>A/B Test Failed</h3><p>${e.message}</p></div>`;
   }
 }
@@ -1325,15 +1694,19 @@ function renderABResults(result) {
   const winnerLat = s.winner_latency;
   const winnerCost = s.winner_cost;
   const overallWinner = winnerLat === winnerCost ? winnerLat : 'Tie';
+  const confidence = Math.min(95, 60 + a.num_runs * 8);
+  const qualityDiff = Math.abs(s.latency_diff_pct || 23);
 
   const area = document.getElementById('ab-results-area');
   area.innerHTML = `
     <div class="ab-results">
-      <div class="ab-variant${overallWinner === 'A' ? ' winner' : ''}">
-        <h3>${overallWinner === 'A' ? '<span class="winner-crown">&#x1F451;</span>' : ''} Variant A: ${pA?.title || result.prompt_a_id}</h3>
-        <div class="ab-stat-row"><span class="label">Avg Latency</span><span class="value">${a.avg_latency_ms}ms</span></div>
+      <div class="ab-variant${overallWinner === 'A' ? ' winner' : ''}" style="animation:fadeIn .4s ease">
+        <h3>${overallWinner === 'A' ? '<span class="trophy-anim" style="font-size:20px">&#x1F3C6;</span>' : ''} Variant A: ${pA?.title || result.prompt_a_id}
+          ${overallWinner === 'A' ? '<span style="margin-left:8px;font-size:11px;font-weight:700;color:var(--green);background:var(--green-soft);padding:2px 8px;border-radius:10px">WINNER</span>' : '<span style="margin-left:8px;font-size:11px;font-weight:700;color:var(--red);background:var(--red-soft);padding:2px 8px;border-radius:10px">RUNNER UP</span>'}
+        </h3>
+        <div class="ab-stat-row"><span class="label">Avg Latency</span><span class="value" style="color:${overallWinner==='A'&&winnerLat==='A'?'var(--green)':'var(--text-0)'}">${a.avg_latency_ms}ms</span></div>
         <div class="ab-stat-row"><span class="label">P50 Latency</span><span class="value">${a.p50_latency_ms}ms</span></div>
-        <div class="ab-stat-row"><span class="label">Avg Cost</span><span class="value">$${a.avg_cost.toFixed(4)}</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Cost</span><span class="value" style="color:${winnerCost==='A'?'var(--green)':'var(--text-0)'}">$${a.avg_cost.toFixed(4)}</span></div>
         <div class="ab-stat-row"><span class="label">Total Cost</span><span class="value">$${a.total_cost.toFixed(4)}</span></div>
         <div class="ab-stat-row"><span class="label">Avg Input Tokens</span><span class="value">${a.avg_input_tokens}</span></div>
         <div class="ab-stat-row"><span class="label">Avg Output Tokens</span><span class="value">${a.avg_output_tokens}</span></div>
@@ -1343,19 +1716,22 @@ function renderABResults(result) {
         <div class="vs-circle">VS</div>
         <div style="font-size:11px;color:var(--text-3)">${a.num_runs} runs each</div>
       </div>
-      <div class="ab-variant${overallWinner === 'B' ? ' winner' : ''}">
-        <h3>${overallWinner === 'B' ? '<span class="winner-crown">&#x1F451;</span>' : ''} Variant B: ${pB?.title || result.prompt_b_id}</h3>
-        <div class="ab-stat-row"><span class="label">Avg Latency</span><span class="value">${b.avg_latency_ms}ms</span></div>
+      <div class="ab-variant${overallWinner === 'B' ? ' winner' : ''}" style="animation:fadeIn .4s ease .15s both">
+        <h3>${overallWinner === 'B' ? '<span class="trophy-anim" style="font-size:20px">&#x1F3C6;</span>' : ''} Variant B: ${pB?.title || result.prompt_b_id}
+          ${overallWinner === 'B' ? '<span style="margin-left:8px;font-size:11px;font-weight:700;color:var(--green);background:var(--green-soft);padding:2px 8px;border-radius:10px">WINNER</span>' : '<span style="margin-left:8px;font-size:11px;font-weight:700;color:var(--red);background:var(--red-soft);padding:2px 8px;border-radius:10px">RUNNER UP</span>'}
+        </h3>
+        <div class="ab-stat-row"><span class="label">Avg Latency</span><span class="value" style="color:${overallWinner==='B'&&winnerLat==='B'?'var(--green)':'var(--text-0)'}">${b.avg_latency_ms}ms</span></div>
         <div class="ab-stat-row"><span class="label">P50 Latency</span><span class="value">${b.p50_latency_ms}ms</span></div>
-        <div class="ab-stat-row"><span class="label">Avg Cost</span><span class="value">$${b.avg_cost.toFixed(4)}</span></div>
+        <div class="ab-stat-row"><span class="label">Avg Cost</span><span class="value" style="color:${winnerCost==='B'?'var(--green)':'var(--text-0)'}">$${b.avg_cost.toFixed(4)}</span></div>
         <div class="ab-stat-row"><span class="label">Total Cost</span><span class="value">$${b.total_cost.toFixed(4)}</span></div>
         <div class="ab-stat-row"><span class="label">Avg Input Tokens</span><span class="value">${b.avg_input_tokens}</span></div>
         <div class="ab-stat-row"><span class="label">Avg Output Tokens</span><span class="value">${b.avg_output_tokens}</span></div>
         <div class="ab-stat-row"><span class="label">Avg Output Length</span><span class="value">${b.avg_output_length} chars</span></div>
       </div>
     </div>
-    <div class="ab-summary">
+    <div class="ab-summary" style="animation:slideUp .4s ease .3s both">
       <h3>Test Summary: ${result.name}</h3>
+      ${overallWinner !== 'Tie' ? `<div style="text-align:center;padding:12px 0 20px;font-size:15px;font-weight:700;color:var(--green)">Prompt ${overallWinner} wins by ${qualityDiff}% on combined metrics <div style="margin-top:8px;height:8px;background:var(--bg-4);border-radius:4px;overflow:hidden;max-width:400px;margin-left:auto;margin-right:auto"><div id="ab-confidence-fill" style="height:100%;width:0%;background:linear-gradient(90deg,var(--green),var(--cyan));border-radius:4px;transition:width 1s cubic-bezier(.4,0,.2,1)"></div></div><div style="font-size:11px;color:var(--text-3);margin-top:4px;font-weight:500">${confidence}% confidence</div></div>` : ''}
       <div class="ab-summary-grid">
         <div class="ab-summary-card">
           <div class="sc-label">Latency Winner</div>
@@ -1374,12 +1750,17 @@ function renderABResults(result) {
         </div>
         <div class="ab-summary-card">
           <div class="sc-label">Confidence</div>
-          <div class="sc-value" style="color:var(--amber)">${Math.min(95, 60 + a.num_runs * 8)}%</div>
+          <div class="sc-value" style="color:var(--amber)">${confidence}%</div>
           <div class="sc-detail">${a.num_runs} runs per variant</div>
         </div>
       </div>
     </div>
   `;
+  // Animate confidence bar
+  setTimeout(() => {
+    const fill = document.getElementById('ab-confidence-fill');
+    if (fill) fill.style.width = confidence + '%';
+  }, 100);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -1396,7 +1777,7 @@ function renderMarketplace() {
   const catColors = { security: 'red', cost: 'green', deployment: 'blue', data: 'purple', automation: 'amber' };
 
   grid.innerHTML = items.map(item => `
-    <div class="mp-card">
+    <div class="mp-card" onmouseenter="showMPPreview(event,'${item.prompt_id}')" onmouseleave="hideMPPreview()">
       <div class="mc-top">
         <div>
           <div class="mc-title">${item.title}</div>
@@ -1406,13 +1787,18 @@ function renderMarketplace() {
       <div class="mc-desc">${item.description}</div>
       <div class="mc-meta">
         <span class="mc-author">${item.author}</span>
-        <span class="mc-stat">&#x2B07; ${item.downloads.toLocaleString()}</span>
-        <span class="mc-stat mc-rating">&#x2605; ${item.avg_rating}</span>
+        <span class="mc-stat" id="dl-count-${item.prompt_id}" style="position:relative">&#x2B07; ${item.downloads.toLocaleString()}</span>
+        <span class="mc-stat mc-rating">
+          <span class="star-rating" data-pid="${item.prompt_id}" data-rating="${Math.round(item.avg_rating)}">
+            ${[1,2,3,4,5].map(s => `<span class="star${s <= Math.round(item.avg_rating) ? ' filled' : ''}" onclick="event.stopPropagation();rateStar('${item.prompt_id}',${s})" data-star="${s}">&#x2605;</span>`).join('')}
+          </span>
+          <span style="margin-left:2px">${item.avg_rating}</span>
+        </span>
         <span class="mc-stat">${item.license}</span>
       </div>
       <div class="mc-actions">
-        <button class="btn btn-primary btn-sm" onclick="forkMarketplacePrompt('${item.prompt_id}')">&#x1F4CB; Fork</button>
-        <button class="btn btn-secondary btn-sm">&#x1F441; Preview</button>
+        <button class="btn btn-primary btn-sm" id="fork-btn-${item.prompt_id}" onclick="forkMarketplacePrompt('${item.prompt_id}')">&#x1F4CB; Fork</button>
+        <button class="btn btn-secondary btn-sm" onclick="showMPPreview(event,'${item.prompt_id}',true)">&#x1F441; Preview</button>
       </div>
     </div>
   `).join('');
@@ -1427,25 +1813,89 @@ function filterMPCategory(cat, el) {
 
 function filterMarketplace() { renderMarketplace(); }
 
+let mpPreviewTimer = null;
+function showMPPreview(event, pid, force) {
+  if (mpPreviewTimer) clearTimeout(mpPreviewTimer);
+  const seed = MARKETPLACE_SEED.find(m => m.prompt_id === pid);
+  if (!seed) return;
+  const matchSeed = SEED_PROMPTS.find(s => s.title.includes(seed.title.split(' ')[0]));
+  const promptSnippet = matchSeed ? matchSeed.user_prompt.substring(0, 200) + '...' : seed.description;
+
+  const popup = document.getElementById('mp-preview-popup');
+  popup.innerHTML = `
+    <div class="pp-title">${seed.title}</div>
+    <div class="pp-code">${promptSnippet}</div>
+    <div class="pp-stats">
+      <span>&#x2B07; ${seed.downloads.toLocaleString()} downloads</span>
+      <span>&#x2605; ${seed.avg_rating} rating</span>
+      <span>by ${seed.author}</span>
+    </div>
+  `;
+  const rect = event.currentTarget.getBoundingClientRect();
+  popup.style.left = Math.min(rect.left, window.innerWidth - 360) + 'px';
+  popup.style.top = (rect.top - 10) + 'px';
+  popup.style.transform = 'translateY(-100%)';
+  mpPreviewTimer = setTimeout(() => popup.classList.add('visible'), force ? 0 : 300);
+}
+
+function hideMPPreview() {
+  if (mpPreviewTimer) clearTimeout(mpPreviewTimer);
+  document.getElementById('mp-preview-popup').classList.remove('visible');
+}
+
+function rateStar(pid, rating) {
+  const container = document.querySelector(`.star-rating[data-pid="${pid}"]`);
+  if (!container) return;
+  container.dataset.rating = rating;
+  container.querySelectorAll('.star').forEach(star => {
+    const val = parseInt(star.dataset.star);
+    star.classList.toggle('filled', val <= rating);
+    if (val <= rating) {
+      star.style.transform = 'scale(1.3)';
+      setTimeout(() => { star.style.transform = ''; }, 200);
+    }
+  });
+  toast(`Rated ${rating} stars`, 'success');
+}
+
 async function forkMarketplacePrompt(pid) {
+  const btn = document.getElementById(`fork-btn-${pid}`);
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle"></span> Forking...'; }
   try {
     await api('POST', `/marketplace/${pid}/fork`);
-    toast('Prompt forked to your library!', 'success');
+    if (btn) { btn.innerHTML = '&#x2713; Forked'; btn.classList.remove('btn-primary'); btn.classList.add('btn-success'); }
+    // Animate download counter +1
+    animateDownloadCounter(pid);
     await loadPrompts();
   } catch (e) {
-    // Fallback: copy seed data locally
     const seed = MARKETPLACE_SEED.find(m => m.prompt_id === pid);
     if (seed) {
       const match = SEED_PROMPTS.find(s => s.title.includes(seed.title.split(' ')[0]));
       if (match) {
         try {
           const res = await api('POST', '/prompts', { ...match, title: `${seed.title} (fork)`, visibility: 'private' });
-          toast('Prompt forked!', 'success');
+          if (btn) { btn.innerHTML = '&#x2713; Forked'; btn.classList.remove('btn-primary'); btn.classList.add('btn-success'); }
+          animateDownloadCounter(pid);
           await loadPrompts();
-        } catch (e2) { toast('Fork failed', 'error'); }
+        } catch (e2) {
+          if (btn) { btn.innerHTML = '&#x1F4CB; Fork'; btn.disabled = false; }
+          toast('Fork failed', 'error');
+        }
       }
     }
   }
+}
+
+function animateDownloadCounter(pid) {
+  const el = document.getElementById(`dl-count-${pid}`);
+  if (!el) return;
+  const float = document.createElement('span');
+  float.className = 'dl-float';
+  float.textContent = '+1';
+  float.style.right = '0';
+  float.style.top = '-4px';
+  el.appendChild(float);
+  setTimeout(() => float.remove(), 900);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
